@@ -1,0 +1,7 @@
+[package]
+name = "yyj"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+yyjson-sys = { path = "../yyjson-sys" }
