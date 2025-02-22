@@ -7,5 +7,10 @@ SHELL:=/usr/bin/bash
 run:
 	echo run
 
+bindgen: src/bindings.rs
+
+src/bindings.rs: yyjson/src/yyjson.h
+	bindgen $< -o $@
+
 clean:
 	echo clean
