@@ -3,7 +3,7 @@
 version = 3
 
 [[package]]
-name = "yyj"
+name = "yyjson-rs"
 version = "0.1.0"
 dependencies = [
  "yyjson-sys",
