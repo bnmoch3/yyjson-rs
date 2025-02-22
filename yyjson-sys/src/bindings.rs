@@ -1138,6 +1138,30 @@ pub type u_int16_t = __uint16_t;
 pub type u_int32_t = __uint32_t;
 pub type u_int64_t = __uint64_t;
 pub type register_t = ::std::os::raw::c_long;
+unsafe extern "C" {
+    #[link_name = "__bswap_16__extern"]
+    pub fn __bswap_16(__bsx: __uint16_t) -> __uint16_t;
+}
+unsafe extern "C" {
+    #[link_name = "__bswap_32__extern"]
+    pub fn __bswap_32(__bsx: __uint32_t) -> __uint32_t;
+}
+unsafe extern "C" {
+    #[link_name = "__bswap_64__extern"]
+    pub fn __bswap_64(__bsx: __uint64_t) -> __uint64_t;
+}
+unsafe extern "C" {
+    #[link_name = "__uint16_identity__extern"]
+    pub fn __uint16_identity(__x: __uint16_t) -> __uint16_t;
+}
+unsafe extern "C" {
+    #[link_name = "__uint32_identity__extern"]
+    pub fn __uint32_identity(__x: __uint32_t) -> __uint32_t;
+}
+unsafe extern "C" {
+    #[link_name = "__uint64_identity__extern"]
+    pub fn __uint64_identity(__x: __uint64_t) -> __uint64_t;
+}
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct __sigset_t {
@@ -2557,10 +2581,35 @@ unsafe extern "C" {
     ) -> *mut yyjson_doc;
 }
 unsafe extern "C" {
+    #[doc = "Read a JSON string.\n\nThis function is thread-safe.\n\n@param dat The JSON data (UTF-8 without BOM), null-terminator is not required.\nIf this parameter is NULL, the function will fail and return NULL.\n@param len The length of JSON data in bytes.\nIf this parameter is 0, the function will fail and return NULL.\n@param flg The JSON read options.\nMultiple options can be combined with `|` operator. 0 means no options.\n@return A new JSON document, or NULL if an error occurs.\nWhen it's no longer needed, it should be freed with `yyjson_doc_free()`."]
+    #[link_name = "yyjson_read__extern"]
+    pub fn yyjson_read(
+        dat: *const ::std::os::raw::c_char,
+        len: usize,
+        flg: yyjson_read_flag,
+    ) -> *mut yyjson_doc;
+}
+unsafe extern "C" {
+    #[doc = "Returns the size of maximum memory usage to read a JSON data.\n\nYou may use this value to avoid malloc() or calloc() call inside the reader\nto get better performance, or read multiple JSON with one piece of memory.\n\n@param len The length of JSON data in bytes.\n@param flg The JSON read options.\n@return The maximum memory size to read this JSON, or 0 if overflow.\n\n@par Example\n@code\n// read multiple JSON with same pre-allocated memory\n\nchar *dat1, *dat2, *dat3; // JSON data\nsize_t len1, len2, len3; // JSON length\nsize_t max_len = MAX(len1, MAX(len2, len3));\nyyjson_doc *doc;\n\n// use one allocator for multiple JSON\nsize_t size = yyjson_read_max_memory_usage(max_len, 0);\nvoid *buf = malloc(size);\nyyjson_alc alc;\nyyjson_alc_pool_init(&alc, buf, size);\n\n// no more alloc() or realloc() call during reading\ndoc = yyjson_read_opts(dat1, len1, 0, &alc, NULL);\nyyjson_doc_free(doc);\ndoc = yyjson_read_opts(dat2, len2, 0, &alc, NULL);\nyyjson_doc_free(doc);\ndoc = yyjson_read_opts(dat3, len3, 0, &alc, NULL);\nyyjson_doc_free(doc);\n\nfree(buf);\n@endcode\n@see yyjson_alc_pool_init()"]
+    #[link_name = "yyjson_read_max_memory_usage__extern"]
+    pub fn yyjson_read_max_memory_usage(len: usize, flg: yyjson_read_flag) -> usize;
+}
+unsafe extern "C" {
     #[doc = "Read a JSON number.\n\nThis function is thread-safe when data is not modified by other threads.\n\n@param dat The JSON data (UTF-8 without BOM), null-terminator is required.\nIf this parameter is NULL, the function will fail and return NULL.\n@param val The output value where result is stored.\nIf this parameter is NULL, the function will fail and return NULL.\nThe value will hold either UINT or SINT or REAL number;\n@param flg The JSON read options.\nMultiple options can be combined with `|` operator. 0 means no options.\nSupports `YYJSON_READ_NUMBER_AS_RAW` and `YYJSON_READ_ALLOW_INF_AND_NAN`.\n@param alc The memory allocator used for long number.\nIt is only used when the built-in floating point reader is disabled.\nPass NULL to use the libc's default allocator.\n@param err A pointer to receive error information.\nPass NULL if you don't need error information.\n@return If successful, a pointer to the character after the last character\nused in the conversion, NULL if an error occurs."]
     pub fn yyjson_read_number(
         dat: *const ::std::os::raw::c_char,
         val: *mut yyjson_val,
+        flg: yyjson_read_flag,
+        alc: *const yyjson_alc,
+        err: *mut yyjson_read_err,
+    ) -> *const ::std::os::raw::c_char;
+}
+unsafe extern "C" {
+    #[doc = "Read a JSON number.\n\nThis function is thread-safe when data is not modified by other threads.\n\n@param dat The JSON data (UTF-8 without BOM), null-terminator is required.\nIf this parameter is NULL, the function will fail and return NULL.\n@param val The output value where result is stored.\nIf this parameter is NULL, the function will fail and return NULL.\nThe value will hold either UINT or SINT or REAL number;\n@param flg The JSON read options.\nMultiple options can be combined with `|` operator. 0 means no options.\nSupports `YYJSON_READ_NUMBER_AS_RAW` and `YYJSON_READ_ALLOW_INF_AND_NAN`.\n@param alc The memory allocator used for long number.\nIt is only used when the built-in floating point reader is disabled.\nPass NULL to use the libc's default allocator.\n@param err A pointer to receive error information.\nPass NULL if you don't need error information.\n@return If successful, a pointer to the character after the last character\nused in the conversion, NULL if an error occurs."]
+    #[link_name = "yyjson_mut_read_number__extern"]
+    pub fn yyjson_mut_read_number(
+        dat: *const ::std::os::raw::c_char,
+        val: *mut yyjson_mut_val,
         flg: yyjson_read_flag,
         alc: *const yyjson_alc,
         err: *mut yyjson_read_err,
@@ -2653,6 +2702,15 @@ unsafe extern "C" {
     ) -> bool;
 }
 unsafe extern "C" {
+    #[doc = "Write a document to JSON string.\n\nThis function is thread-safe.\n\n@param doc The JSON document.\nIf this doc is NULL or has no root, the function will fail and return false.\n@param flg The JSON write options.\nMultiple options can be combined with `|` operator. 0 means no options.\n@param len A pointer to receive output length in bytes (not including the\nnull-terminator). Pass NULL if you don't need length information.\n@return A new JSON string, or NULL if an error occurs.\nThis string is encoded as UTF-8 with a null-terminator.\nWhen it's no longer needed, it should be freed with free()."]
+    #[link_name = "yyjson_write__extern"]
+    pub fn yyjson_write(
+        doc: *const yyjson_doc,
+        flg: yyjson_write_flag,
+        len: *mut usize,
+    ) -> *mut ::std::os::raw::c_char;
+}
+unsafe extern "C" {
     #[doc = "Write a document to JSON string with options.\n\nThis function is thread-safe when:\n1. The `doc` is not modified by other threads.\n2. The `alc` is thread-safe or NULL.\n\n@param doc The mutable JSON document.\nIf this doc is NULL or has no root, the function will fail and return false.\n@param flg The JSON write options.\nMultiple options can be combined with `|` operator. 0 means no options.\n@param alc The memory allocator used by JSON writer.\nPass NULL to use the libc's default allocator.\n@param len A pointer to receive output length in bytes (not including the\nnull-terminator). Pass NULL if you don't need length information.\n@param err A pointer to receive error information.\nPass NULL if you don't need error information.\n@return A new JSON string, or NULL if an error occurs.\nThis string is encoded as UTF-8 with a null-terminator.\nWhen it's no longer needed, it should be freed with free() or alc->free()."]
     pub fn yyjson_mut_write_opts(
         doc: *const yyjson_mut_doc,
@@ -2681,6 +2739,15 @@ unsafe extern "C" {
         alc: *const yyjson_alc,
         err: *mut yyjson_write_err,
     ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Write a document to JSON string.\n\nThis function is thread-safe when:\nThe `doc` is not modified by other threads.\n\n@param doc The JSON document.\nIf this doc is NULL or has no root, the function will fail and return false.\n@param flg The JSON write options.\nMultiple options can be combined with `|` operator. 0 means no options.\n@param len A pointer to receive output length in bytes (not including the\nnull-terminator). Pass NULL if you don't need length information.\n@return A new JSON string, or NULL if an error occurs.\nThis string is encoded as UTF-8 with a null-terminator.\nWhen it's no longer needed, it should be freed with free()."]
+    #[link_name = "yyjson_mut_write__extern"]
+    pub fn yyjson_mut_write(
+        doc: *const yyjson_mut_doc,
+        flg: yyjson_write_flag,
+        len: *mut usize,
+    ) -> *mut ::std::os::raw::c_char;
 }
 unsafe extern "C" {
     #[doc = "Write a value to JSON string with options.\n\nThis function is thread-safe when:\nThe `alc` is thread-safe or NULL.\n\n@param val The JSON root value.\nIf this parameter is NULL, the function will fail and return NULL.\n@param flg The JSON write options.\nMultiple options can be combined with `|` operator. 0 means no options.\n@param alc The memory allocator used by JSON writer.\nPass NULL to use the libc's default allocator.\n@param len A pointer to receive output length in bytes (not including the\nnull-terminator). Pass NULL if you don't need length information.\n@param err A pointer to receive error information.\nPass NULL if you don't need error information.\n@return A new JSON string, or NULL if an error occurs.\nThis string is encoded as UTF-8 with a null-terminator.\nWhen it's no longer needed, it should be freed with free() or alc->free()."]
@@ -2713,6 +2780,15 @@ unsafe extern "C" {
     ) -> bool;
 }
 unsafe extern "C" {
+    #[doc = "Write a value to JSON string.\n\nThis function is thread-safe.\n\n@param val The JSON root value.\nIf this parameter is NULL, the function will fail and return NULL.\n@param flg The JSON write options.\nMultiple options can be combined with `|` operator. 0 means no options.\n@param len A pointer to receive output length in bytes (not including the\nnull-terminator). Pass NULL if you don't need length information.\n@return A new JSON string, or NULL if an error occurs.\nThis string is encoded as UTF-8 with a null-terminator.\nWhen it's no longer needed, it should be freed with free()."]
+    #[link_name = "yyjson_val_write__extern"]
+    pub fn yyjson_val_write(
+        val: *const yyjson_val,
+        flg: yyjson_write_flag,
+        len: *mut usize,
+    ) -> *mut ::std::os::raw::c_char;
+}
+unsafe extern "C" {
     #[doc = "Write a value to JSON string with options.\n\nThis function is thread-safe when:\n1. The `val` is not modified by other threads.\n2. The `alc` is thread-safe or NULL.\n\n@param val The mutable JSON root value.\nIf this parameter is NULL, the function will fail and return NULL.\n@param flg The JSON write options.\nMultiple options can be combined with `|` operator. 0 means no options.\n@param alc The memory allocator used by JSON writer.\nPass NULL to use the libc's default allocator.\n@param len A pointer to receive output length in bytes (not including the\nnull-terminator). Pass NULL if you don't need length information.\n@param err A pointer to receive error information.\nPass NULL if you don't need error information.\n@return  A new JSON string, or NULL if an error occurs.\nThis string is encoded as UTF-8 with a null-terminator.\nWhen it's no longer needed, it should be freed with free() or alc->free()."]
     pub fn yyjson_mut_val_write_opts(
         val: *const yyjson_mut_val,
@@ -2742,6 +2818,287 @@ unsafe extern "C" {
         err: *mut yyjson_write_err,
     ) -> bool;
 }
+unsafe extern "C" {
+    #[doc = "Write a value to JSON string.\n\nThis function is thread-safe when:\nThe `val` is not modified by other threads.\n\n@param val The JSON root value.\nIf this parameter is NULL, the function will fail and return NULL.\n@param flg The JSON write options.\nMultiple options can be combined with `|` operator. 0 means no options.\n@param len A pointer to receive output length in bytes (not including the\nnull-terminator). Pass NULL if you don't need length information.\n@return A new JSON string, or NULL if an error occurs.\nThis string is encoded as UTF-8 with a null-terminator.\nWhen it's no longer needed, it should be freed with free()."]
+    #[link_name = "yyjson_mut_val_write__extern"]
+    pub fn yyjson_mut_val_write(
+        val: *const yyjson_mut_val,
+        flg: yyjson_write_flag,
+        len: *mut usize,
+    ) -> *mut ::std::os::raw::c_char;
+}
+unsafe extern "C" {
+    #[doc = " Returns the root value of this JSON document.\nReturns NULL if `doc` is NULL."]
+    #[link_name = "yyjson_doc_get_root__extern"]
+    pub fn yyjson_doc_get_root(doc: *mut yyjson_doc) -> *mut yyjson_val;
+}
+unsafe extern "C" {
+    #[doc = " Returns read size of input JSON data.\nReturns 0 if `doc` is NULL.\nFor example: the read size of `[1,2,3]` is 7 bytes."]
+    #[link_name = "yyjson_doc_get_read_size__extern"]
+    pub fn yyjson_doc_get_read_size(doc: *mut yyjson_doc) -> usize;
+}
+unsafe extern "C" {
+    #[doc = " Returns total value count in this JSON document.\nReturns 0 if `doc` is NULL.\nFor example: the value count of `[1,2,3]` is 4."]
+    #[link_name = "yyjson_doc_get_val_count__extern"]
+    pub fn yyjson_doc_get_val_count(doc: *mut yyjson_doc) -> usize;
+}
+unsafe extern "C" {
+    #[doc = " Release the JSON document and free the memory.\nAfter calling this function, the `doc` and all values from the `doc` are no\nlonger available. This function will do nothing if the `doc` is NULL."]
+    #[link_name = "yyjson_doc_free__extern"]
+    pub fn yyjson_doc_free(doc: *mut yyjson_doc);
+}
+unsafe extern "C" {
+    #[doc = " Returns whether the JSON value is raw.\nReturns false if `val` is NULL."]
+    #[link_name = "yyjson_is_raw__extern"]
+    pub fn yyjson_is_raw(val: *mut yyjson_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Returns whether the JSON value is `null`.\nReturns false if `val` is NULL."]
+    #[link_name = "yyjson_is_null__extern"]
+    pub fn yyjson_is_null(val: *mut yyjson_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Returns whether the JSON value is `true`.\nReturns false if `val` is NULL."]
+    #[link_name = "yyjson_is_true__extern"]
+    pub fn yyjson_is_true(val: *mut yyjson_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Returns whether the JSON value is `false`.\nReturns false if `val` is NULL."]
+    #[link_name = "yyjson_is_false__extern"]
+    pub fn yyjson_is_false(val: *mut yyjson_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Returns whether the JSON value is bool (true/false).\nReturns false if `val` is NULL."]
+    #[link_name = "yyjson_is_bool__extern"]
+    pub fn yyjson_is_bool(val: *mut yyjson_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Returns whether the JSON value is unsigned integer (uint64_t).\nReturns false if `val` is NULL."]
+    #[link_name = "yyjson_is_uint__extern"]
+    pub fn yyjson_is_uint(val: *mut yyjson_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Returns whether the JSON value is signed integer (int64_t).\nReturns false if `val` is NULL."]
+    #[link_name = "yyjson_is_sint__extern"]
+    pub fn yyjson_is_sint(val: *mut yyjson_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Returns whether the JSON value is integer (uint64_t/int64_t).\nReturns false if `val` is NULL."]
+    #[link_name = "yyjson_is_int__extern"]
+    pub fn yyjson_is_int(val: *mut yyjson_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Returns whether the JSON value is real number (double).\nReturns false if `val` is NULL."]
+    #[link_name = "yyjson_is_real__extern"]
+    pub fn yyjson_is_real(val: *mut yyjson_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Returns whether the JSON value is number (uint64_t/int64_t/double).\nReturns false if `val` is NULL."]
+    #[link_name = "yyjson_is_num__extern"]
+    pub fn yyjson_is_num(val: *mut yyjson_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Returns whether the JSON value is string.\nReturns false if `val` is NULL."]
+    #[link_name = "yyjson_is_str__extern"]
+    pub fn yyjson_is_str(val: *mut yyjson_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Returns whether the JSON value is array.\nReturns false if `val` is NULL."]
+    #[link_name = "yyjson_is_arr__extern"]
+    pub fn yyjson_is_arr(val: *mut yyjson_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Returns whether the JSON value is object.\nReturns false if `val` is NULL."]
+    #[link_name = "yyjson_is_obj__extern"]
+    pub fn yyjson_is_obj(val: *mut yyjson_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Returns whether the JSON value is container (array/object).\nReturns false if `val` is NULL."]
+    #[link_name = "yyjson_is_ctn__extern"]
+    pub fn yyjson_is_ctn(val: *mut yyjson_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Returns the JSON value's type.\nReturns YYJSON_TYPE_NONE if `val` is NULL."]
+    #[link_name = "yyjson_get_type__extern"]
+    pub fn yyjson_get_type(val: *mut yyjson_val) -> yyjson_type;
+}
+unsafe extern "C" {
+    #[doc = " Returns the JSON value's subtype.\nReturns YYJSON_SUBTYPE_NONE if `val` is NULL."]
+    #[link_name = "yyjson_get_subtype__extern"]
+    pub fn yyjson_get_subtype(val: *mut yyjson_val) -> yyjson_subtype;
+}
+unsafe extern "C" {
+    #[doc = " Returns the JSON value's tag.\nReturns 0 if `val` is NULL."]
+    #[link_name = "yyjson_get_tag__extern"]
+    pub fn yyjson_get_tag(val: *mut yyjson_val) -> u8;
+}
+unsafe extern "C" {
+    #[doc = " Returns the JSON value's type description.\nThe return value should be one of these strings: \"raw\", \"null\", \"string\",\n\"array\", \"object\", \"true\", \"false\", \"uint\", \"sint\", \"real\", \"unknown\"."]
+    #[link_name = "yyjson_get_type_desc__extern"]
+    pub fn yyjson_get_type_desc(val: *mut yyjson_val) -> *const ::std::os::raw::c_char;
+}
+unsafe extern "C" {
+    #[doc = " Returns the content if the value is raw.\nReturns NULL if `val` is NULL or type is not raw."]
+    #[link_name = "yyjson_get_raw__extern"]
+    pub fn yyjson_get_raw(val: *mut yyjson_val) -> *const ::std::os::raw::c_char;
+}
+unsafe extern "C" {
+    #[doc = " Returns the content if the value is bool.\nReturns NULL if `val` is NULL or type is not bool."]
+    #[link_name = "yyjson_get_bool__extern"]
+    pub fn yyjson_get_bool(val: *mut yyjson_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Returns the content and cast to uint64_t.\nReturns 0 if `val` is NULL or type is not integer(sint/uint)."]
+    #[link_name = "yyjson_get_uint__extern"]
+    pub fn yyjson_get_uint(val: *mut yyjson_val) -> u64;
+}
+unsafe extern "C" {
+    #[doc = " Returns the content and cast to int64_t.\nReturns 0 if `val` is NULL or type is not integer(sint/uint)."]
+    #[link_name = "yyjson_get_sint__extern"]
+    pub fn yyjson_get_sint(val: *mut yyjson_val) -> i64;
+}
+unsafe extern "C" {
+    #[doc = " Returns the content and cast to int.\nReturns 0 if `val` is NULL or type is not integer(sint/uint)."]
+    #[link_name = "yyjson_get_int__extern"]
+    pub fn yyjson_get_int(val: *mut yyjson_val) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    #[doc = " Returns the content if the value is real number, or 0.0 on error.\nReturns 0.0 if `val` is NULL or type is not real(double)."]
+    #[link_name = "yyjson_get_real__extern"]
+    pub fn yyjson_get_real(val: *mut yyjson_val) -> f64;
+}
+unsafe extern "C" {
+    #[doc = " Returns the content and typecast to `double` if the value is number.\nReturns 0.0 if `val` is NULL or type is not number(uint/sint/real)."]
+    #[link_name = "yyjson_get_num__extern"]
+    pub fn yyjson_get_num(val: *mut yyjson_val) -> f64;
+}
+unsafe extern "C" {
+    #[doc = " Returns the content if the value is string.\nReturns NULL if `val` is NULL or type is not string."]
+    #[link_name = "yyjson_get_str__extern"]
+    pub fn yyjson_get_str(val: *mut yyjson_val) -> *const ::std::os::raw::c_char;
+}
+unsafe extern "C" {
+    #[doc = " Returns the content length (string length, array size, object size.\nReturns 0 if `val` is NULL or type is not string/array/object."]
+    #[link_name = "yyjson_get_len__extern"]
+    pub fn yyjson_get_len(val: *mut yyjson_val) -> usize;
+}
+unsafe extern "C" {
+    #[doc = " Returns whether the JSON value is equals to a string.\nReturns false if input is NULL or type is not string."]
+    #[link_name = "yyjson_equals_str__extern"]
+    pub fn yyjson_equals_str(val: *mut yyjson_val, str_: *const ::std::os::raw::c_char) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Returns whether the JSON value is equals to a string.\nThe `str` should be a UTF-8 string, null-terminator is not required.\nReturns false if input is NULL or type is not string."]
+    #[link_name = "yyjson_equals_strn__extern"]
+    pub fn yyjson_equals_strn(
+        val: *mut yyjson_val,
+        str_: *const ::std::os::raw::c_char,
+        len: usize,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Returns whether two JSON values are equal (deep compare).\nReturns false if input is NULL.\n@note the result may be inaccurate if object has duplicate keys.\n@warning This function is recursive and may cause a stack overflow\nif the object level is too deep."]
+    #[link_name = "yyjson_equals__extern"]
+    pub fn yyjson_equals(lhs: *mut yyjson_val, rhs: *mut yyjson_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Set the value to raw.\nReturns false if input is NULL or `val` is object or array.\n@warning This will modify the `immutable` value, use with caution."]
+    #[link_name = "yyjson_set_raw__extern"]
+    pub fn yyjson_set_raw(
+        val: *mut yyjson_val,
+        raw: *const ::std::os::raw::c_char,
+        len: usize,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Set the value to null.\nReturns false if input is NULL or `val` is object or array.\n@warning This will modify the `immutable` value, use with caution."]
+    #[link_name = "yyjson_set_null__extern"]
+    pub fn yyjson_set_null(val: *mut yyjson_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Set the value to bool.\nReturns false if input is NULL or `val` is object or array.\n@warning This will modify the `immutable` value, use with caution."]
+    #[link_name = "yyjson_set_bool__extern"]
+    pub fn yyjson_set_bool(val: *mut yyjson_val, num: bool) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Set the value to uint.\nReturns false if input is NULL or `val` is object or array.\n@warning This will modify the `immutable` value, use with caution."]
+    #[link_name = "yyjson_set_uint__extern"]
+    pub fn yyjson_set_uint(val: *mut yyjson_val, num: u64) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Set the value to sint.\nReturns false if input is NULL or `val` is object or array.\n@warning This will modify the `immutable` value, use with caution."]
+    #[link_name = "yyjson_set_sint__extern"]
+    pub fn yyjson_set_sint(val: *mut yyjson_val, num: i64) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Set the value to int.\nReturns false if input is NULL or `val` is object or array.\n@warning This will modify the `immutable` value, use with caution."]
+    #[link_name = "yyjson_set_int__extern"]
+    pub fn yyjson_set_int(val: *mut yyjson_val, num: ::std::os::raw::c_int) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Set the value to float.\nReturns false if input is NULL or `val` is object or array.\n@warning This will modify the `immutable` value, use with caution."]
+    #[link_name = "yyjson_set_float__extern"]
+    pub fn yyjson_set_float(val: *mut yyjson_val, num: f32) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Set the value to double.\nReturns false if input is NULL or `val` is object or array.\n@warning This will modify the `immutable` value, use with caution."]
+    #[link_name = "yyjson_set_double__extern"]
+    pub fn yyjson_set_double(val: *mut yyjson_val, num: f64) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Set the value to real.\nReturns false if input is NULL or `val` is object or array.\n@warning This will modify the `immutable` value, use with caution."]
+    #[link_name = "yyjson_set_real__extern"]
+    pub fn yyjson_set_real(val: *mut yyjson_val, num: f64) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Set the floating-point number's output format to fixed-point notation.\nReturns false if input is NULL or `val` is not real type.\n@see YYJSON_WRITE_FP_TO_FIXED flag.\n@warning This will modify the `immutable` value, use with caution."]
+    #[link_name = "yyjson_set_fp_to_fixed__extern"]
+    pub fn yyjson_set_fp_to_fixed(val: *mut yyjson_val, prec: ::std::os::raw::c_int) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Set the floating-point number's output format to single-precision.\nReturns false if input is NULL or `val` is not real type.\n@see YYJSON_WRITE_FP_TO_FLOAT flag.\n@warning This will modify the `immutable` value, use with caution."]
+    #[link_name = "yyjson_set_fp_to_float__extern"]
+    pub fn yyjson_set_fp_to_float(val: *mut yyjson_val, flt: bool) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Set the value to string (null-terminated).\nReturns false if input is NULL or `val` is object or array.\n@warning This will modify the `immutable` value, use with caution."]
+    #[link_name = "yyjson_set_str__extern"]
+    pub fn yyjson_set_str(val: *mut yyjson_val, str_: *const ::std::os::raw::c_char) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Set the value to string (with length).\nReturns false if input is NULL or `val` is object or array.\n@warning This will modify the `immutable` value, use with caution."]
+    #[link_name = "yyjson_set_strn__extern"]
+    pub fn yyjson_set_strn(
+        val: *mut yyjson_val,
+        str_: *const ::std::os::raw::c_char,
+        len: usize,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Marks this string as not needing to be escaped during JSON writing.\nThis can be used to avoid the overhead of escaping if the string contains\nonly characters that do not require escaping.\nReturns false if input is NULL or `val` is not string.\n@see YYJSON_SUBTYPE_NOESC subtype.\n@warning This will modify the `immutable` value, use with caution."]
+    #[link_name = "yyjson_set_str_noesc__extern"]
+    pub fn yyjson_set_str_noesc(val: *mut yyjson_val, noesc: bool) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Returns the number of elements in this array.\nReturns 0 if `arr` is NULL or type is not array."]
+    #[link_name = "yyjson_arr_size__extern"]
+    pub fn yyjson_arr_size(arr: *mut yyjson_val) -> usize;
+}
+unsafe extern "C" {
+    #[doc = " Returns the element at the specified position in this array.\nReturns NULL if array is NULL/empty or the index is out of bounds.\n@warning This function takes a linear search time if array is not flat.\nFor example: `[1,{},3]` is flat, `[1,[2],3]` is not flat."]
+    #[link_name = "yyjson_arr_get__extern"]
+    pub fn yyjson_arr_get(arr: *mut yyjson_val, idx: usize) -> *mut yyjson_val;
+}
+unsafe extern "C" {
+    #[doc = " Returns the first element of this array.\nReturns NULL if `arr` is NULL/empty or type is not array."]
+    #[link_name = "yyjson_arr_get_first__extern"]
+    pub fn yyjson_arr_get_first(arr: *mut yyjson_val) -> *mut yyjson_val;
+}
+unsafe extern "C" {
+    #[doc = " Returns the last element of this array.\nReturns NULL if `arr` is NULL/empty or type is not array.\n@warning This function takes a linear search time if array is not flat.\nFor example: `[1,{},3]` is flat, `[1,[2],3]` is not flat."]
+    #[link_name = "yyjson_arr_get_last__extern"]
+    pub fn yyjson_arr_get_last(arr: *mut yyjson_val) -> *mut yyjson_val;
+}
 #[doc = "A JSON array iterator.\n\n@par Example\n@code\nyyjson_val *val;\nyyjson_arr_iter iter = yyjson_arr_iter_with(arr);\nwhile ((val = yyjson_arr_iter_next(&iter))) {\nyour_func(val);\n}\n@endcode"]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -2764,6 +3121,48 @@ const _: () = {
     ["Offset of field: yyjson_arr_iter::cur"]
         [::std::mem::offset_of!(yyjson_arr_iter, cur) - 16usize];
 };
+unsafe extern "C" {
+    #[doc = "Initialize an iterator for this array.\n\n@param arr The array to be iterated over.\nIf this parameter is NULL or not an array, `iter` will be set to empty.\n@param iter The iterator to be initialized.\nIf this parameter is NULL, the function will fail and return false.\n@return true if the `iter` has been successfully initialized.\n\n@note The iterator does not need to be destroyed."]
+    #[link_name = "yyjson_arr_iter_init__extern"]
+    pub fn yyjson_arr_iter_init(arr: *mut yyjson_val, iter: *mut yyjson_arr_iter) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Create an iterator with an array , same as `yyjson_arr_iter_init()`.\n\n@param arr The array to be iterated over.\nIf this parameter is NULL or not an array, an empty iterator will returned.\n@return A new iterator for the array.\n\n@note The iterator does not need to be destroyed."]
+    #[link_name = "yyjson_arr_iter_with__extern"]
+    pub fn yyjson_arr_iter_with(arr: *mut yyjson_val) -> yyjson_arr_iter;
+}
+unsafe extern "C" {
+    #[doc = "Returns whether the iteration has more elements.\nIf `iter` is NULL, this function will return false."]
+    #[link_name = "yyjson_arr_iter_has_next__extern"]
+    pub fn yyjson_arr_iter_has_next(iter: *mut yyjson_arr_iter) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Returns the next element in the iteration, or NULL on end.\nIf `iter` is NULL, this function will return NULL."]
+    #[link_name = "yyjson_arr_iter_next__extern"]
+    pub fn yyjson_arr_iter_next(iter: *mut yyjson_arr_iter) -> *mut yyjson_val;
+}
+unsafe extern "C" {
+    #[doc = " Returns the number of key-value pairs in this object.\nReturns 0 if `obj` is NULL or type is not object."]
+    #[link_name = "yyjson_obj_size__extern"]
+    pub fn yyjson_obj_size(obj: *mut yyjson_val) -> usize;
+}
+unsafe extern "C" {
+    #[doc = " Returns the value to which the specified key is mapped.\nReturns NULL if this object contains no mapping for the key.\nReturns NULL if `obj/key` is NULL, or type is not object.\n\nThe `key` should be a null-terminated UTF-8 string.\n\n@warning This function takes a linear search time."]
+    #[link_name = "yyjson_obj_get__extern"]
+    pub fn yyjson_obj_get(
+        obj: *mut yyjson_val,
+        key: *const ::std::os::raw::c_char,
+    ) -> *mut yyjson_val;
+}
+unsafe extern "C" {
+    #[doc = " Returns the value to which the specified key is mapped.\nReturns NULL if this object contains no mapping for the key.\nReturns NULL if `obj/key` is NULL, or type is not object.\n\nThe `key` should be a UTF-8 string, null-terminator is not required.\nThe `key_len` should be the length of the key, in bytes.\n\n@warning This function takes a linear search time."]
+    #[link_name = "yyjson_obj_getn__extern"]
+    pub fn yyjson_obj_getn(
+        obj: *mut yyjson_val,
+        key: *const ::std::os::raw::c_char,
+        key_len: usize,
+    ) -> *mut yyjson_val;
+}
 #[doc = "A JSON object iterator.\n\n@par Example\n@code\nyyjson_val *key, *val;\nyyjson_obj_iter iter = yyjson_obj_iter_with(obj);\nwhile ((key = yyjson_obj_iter_next(&iter))) {\nval = yyjson_obj_iter_get_val(key);\nyour_func(key, val);\n}\n@endcode\n\nIf the ordering of the keys is known at compile-time, you can use this method\nto speed up value lookups:\n@code\n// {\"k1\":1, \"k2\": 3, \"k3\": 3}\nyyjson_val *key, *val;\nyyjson_obj_iter iter = yyjson_obj_iter_with(obj);\nyyjson_val *v1 = yyjson_obj_iter_get(&iter, \"k1\");\nyyjson_val *v3 = yyjson_obj_iter_get(&iter, \"k3\");\n@endcode\n@see yyjson_obj_iter_get() and yyjson_obj_iter_getn()"]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -2790,6 +3189,58 @@ const _: () = {
     ["Offset of field: yyjson_obj_iter::obj"]
         [::std::mem::offset_of!(yyjson_obj_iter, obj) - 24usize];
 };
+unsafe extern "C" {
+    #[doc = "Initialize an iterator for this object.\n\n@param obj The object to be iterated over.\nIf this parameter is NULL or not an object, `iter` will be set to empty.\n@param iter The iterator to be initialized.\nIf this parameter is NULL, the function will fail and return false.\n@return true if the `iter` has been successfully initialized.\n\n@note The iterator does not need to be destroyed."]
+    #[link_name = "yyjson_obj_iter_init__extern"]
+    pub fn yyjson_obj_iter_init(obj: *mut yyjson_val, iter: *mut yyjson_obj_iter) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Create an iterator with an object, same as `yyjson_obj_iter_init()`.\n\n@param obj The object to be iterated over.\nIf this parameter is NULL or not an object, an empty iterator will returned.\n@return A new iterator for the object.\n\n@note The iterator does not need to be destroyed."]
+    #[link_name = "yyjson_obj_iter_with__extern"]
+    pub fn yyjson_obj_iter_with(obj: *mut yyjson_val) -> yyjson_obj_iter;
+}
+unsafe extern "C" {
+    #[doc = "Returns whether the iteration has more elements.\nIf `iter` is NULL, this function will return false."]
+    #[link_name = "yyjson_obj_iter_has_next__extern"]
+    pub fn yyjson_obj_iter_has_next(iter: *mut yyjson_obj_iter) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Returns the next key in the iteration, or NULL on end.\nIf `iter` is NULL, this function will return NULL."]
+    #[link_name = "yyjson_obj_iter_next__extern"]
+    pub fn yyjson_obj_iter_next(iter: *mut yyjson_obj_iter) -> *mut yyjson_val;
+}
+unsafe extern "C" {
+    #[doc = "Returns the value for key inside the iteration.\nIf `iter` is NULL, this function will return NULL."]
+    #[link_name = "yyjson_obj_iter_get_val__extern"]
+    pub fn yyjson_obj_iter_get_val(key: *mut yyjson_val) -> *mut yyjson_val;
+}
+unsafe extern "C" {
+    #[doc = "Iterates to a specified key and returns the value.\n\nThis function does the same thing as `yyjson_obj_get()`, but is much faster\nif the ordering of the keys is known at compile-time and you are using the same\norder to look up the values. If the key exists in this object, then the\niterator will stop at the next key, otherwise the iterator will not change and\nNULL is returned.\n\n@param iter The object iterator, should not be NULL.\n@param key The key, should be a UTF-8 string with null-terminator.\n@return The value to which the specified key is mapped.\nNULL if this object contains no mapping for the key or input is invalid.\n\n@warning This function takes a linear search time if the key is not nearby."]
+    #[link_name = "yyjson_obj_iter_get__extern"]
+    pub fn yyjson_obj_iter_get(
+        iter: *mut yyjson_obj_iter,
+        key: *const ::std::os::raw::c_char,
+    ) -> *mut yyjson_val;
+}
+unsafe extern "C" {
+    #[doc = "Iterates to a specified key and returns the value.\n\nThis function does the same thing as `yyjson_obj_getn()`, but is much faster\nif the ordering of the keys is known at compile-time and you are using the same\norder to look up the values. If the key exists in this object, then the\niterator will stop at the next key, otherwise the iterator will not change and\nNULL is returned.\n\n@param iter The object iterator, should not be NULL.\n@param key The key, should be a UTF-8 string, null-terminator is not required.\n@param key_len The the length of `key`, in bytes.\n@return The value to which the specified key is mapped.\nNULL if this object contains no mapping for the key or input is invalid.\n\n@warning This function takes a linear search time if the key is not nearby."]
+    #[link_name = "yyjson_obj_iter_getn__extern"]
+    pub fn yyjson_obj_iter_getn(
+        iter: *mut yyjson_obj_iter,
+        key: *const ::std::os::raw::c_char,
+        key_len: usize,
+    ) -> *mut yyjson_val;
+}
+unsafe extern "C" {
+    #[doc = " Returns the root value of this JSON document.\nReturns NULL if `doc` is NULL."]
+    #[link_name = "yyjson_mut_doc_get_root__extern"]
+    pub fn yyjson_mut_doc_get_root(doc: *mut yyjson_mut_doc) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = " Sets the root value of this JSON document.\nPass NULL to clear root value of the document."]
+    #[link_name = "yyjson_mut_doc_set_root__extern"]
+    pub fn yyjson_mut_doc_set_root(doc: *mut yyjson_mut_doc, root: *mut yyjson_mut_val);
+}
 unsafe extern "C" {
     #[doc = "Set the string pool size for a mutable document.\nThis function does not allocate memory immediately, but uses the size when\nthe next memory allocation is needed.\n\nIf the caller knows the approximate bytes of strings that the document needs to\nstore (e.g. copy string with `yyjson_mut_strcpy` function), setting a larger\nsize can avoid multiple memory allocations and improve performance.\n\n@param doc The mutable document.\n@param len The desired string pool size in bytes (total string length).\n@return true if successful, false if size is 0 or overflow."]
     pub fn yyjson_mut_doc_set_str_pool_size(doc: *mut yyjson_mut_doc, len: usize) -> bool;
@@ -2846,6 +3297,395 @@ unsafe extern "C" {
         alc: *const yyjson_alc,
     ) -> *mut yyjson_doc;
 }
+unsafe extern "C" {
+    #[doc = " Returns whether the JSON value is raw.\nReturns false if `val` is NULL."]
+    #[link_name = "yyjson_mut_is_raw__extern"]
+    pub fn yyjson_mut_is_raw(val: *mut yyjson_mut_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Returns whether the JSON value is `null`.\nReturns false if `val` is NULL."]
+    #[link_name = "yyjson_mut_is_null__extern"]
+    pub fn yyjson_mut_is_null(val: *mut yyjson_mut_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Returns whether the JSON value is `true`.\nReturns false if `val` is NULL."]
+    #[link_name = "yyjson_mut_is_true__extern"]
+    pub fn yyjson_mut_is_true(val: *mut yyjson_mut_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Returns whether the JSON value is `false`.\nReturns false if `val` is NULL."]
+    #[link_name = "yyjson_mut_is_false__extern"]
+    pub fn yyjson_mut_is_false(val: *mut yyjson_mut_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Returns whether the JSON value is bool (true/false).\nReturns false if `val` is NULL."]
+    #[link_name = "yyjson_mut_is_bool__extern"]
+    pub fn yyjson_mut_is_bool(val: *mut yyjson_mut_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Returns whether the JSON value is unsigned integer (uint64_t).\nReturns false if `val` is NULL."]
+    #[link_name = "yyjson_mut_is_uint__extern"]
+    pub fn yyjson_mut_is_uint(val: *mut yyjson_mut_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Returns whether the JSON value is signed integer (int64_t).\nReturns false if `val` is NULL."]
+    #[link_name = "yyjson_mut_is_sint__extern"]
+    pub fn yyjson_mut_is_sint(val: *mut yyjson_mut_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Returns whether the JSON value is integer (uint64_t/int64_t).\nReturns false if `val` is NULL."]
+    #[link_name = "yyjson_mut_is_int__extern"]
+    pub fn yyjson_mut_is_int(val: *mut yyjson_mut_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Returns whether the JSON value is real number (double).\nReturns false if `val` is NULL."]
+    #[link_name = "yyjson_mut_is_real__extern"]
+    pub fn yyjson_mut_is_real(val: *mut yyjson_mut_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Returns whether the JSON value is number (uint/sint/real).\nReturns false if `val` is NULL."]
+    #[link_name = "yyjson_mut_is_num__extern"]
+    pub fn yyjson_mut_is_num(val: *mut yyjson_mut_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Returns whether the JSON value is string.\nReturns false if `val` is NULL."]
+    #[link_name = "yyjson_mut_is_str__extern"]
+    pub fn yyjson_mut_is_str(val: *mut yyjson_mut_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Returns whether the JSON value is array.\nReturns false if `val` is NULL."]
+    #[link_name = "yyjson_mut_is_arr__extern"]
+    pub fn yyjson_mut_is_arr(val: *mut yyjson_mut_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Returns whether the JSON value is object.\nReturns false if `val` is NULL."]
+    #[link_name = "yyjson_mut_is_obj__extern"]
+    pub fn yyjson_mut_is_obj(val: *mut yyjson_mut_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Returns whether the JSON value is container (array/object).\nReturns false if `val` is NULL."]
+    #[link_name = "yyjson_mut_is_ctn__extern"]
+    pub fn yyjson_mut_is_ctn(val: *mut yyjson_mut_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Returns the JSON value's type.\nReturns `YYJSON_TYPE_NONE` if `val` is NULL."]
+    #[link_name = "yyjson_mut_get_type__extern"]
+    pub fn yyjson_mut_get_type(val: *mut yyjson_mut_val) -> yyjson_type;
+}
+unsafe extern "C" {
+    #[doc = " Returns the JSON value's subtype.\nReturns `YYJSON_SUBTYPE_NONE` if `val` is NULL."]
+    #[link_name = "yyjson_mut_get_subtype__extern"]
+    pub fn yyjson_mut_get_subtype(val: *mut yyjson_mut_val) -> yyjson_subtype;
+}
+unsafe extern "C" {
+    #[doc = " Returns the JSON value's tag.\nReturns 0 if `val` is NULL."]
+    #[link_name = "yyjson_mut_get_tag__extern"]
+    pub fn yyjson_mut_get_tag(val: *mut yyjson_mut_val) -> u8;
+}
+unsafe extern "C" {
+    #[doc = " Returns the JSON value's type description.\nThe return value should be one of these strings: \"raw\", \"null\", \"string\",\n\"array\", \"object\", \"true\", \"false\", \"uint\", \"sint\", \"real\", \"unknown\"."]
+    #[link_name = "yyjson_mut_get_type_desc__extern"]
+    pub fn yyjson_mut_get_type_desc(val: *mut yyjson_mut_val) -> *const ::std::os::raw::c_char;
+}
+unsafe extern "C" {
+    #[doc = " Returns the content if the value is raw.\nReturns NULL if `val` is NULL or type is not raw."]
+    #[link_name = "yyjson_mut_get_raw__extern"]
+    pub fn yyjson_mut_get_raw(val: *mut yyjson_mut_val) -> *const ::std::os::raw::c_char;
+}
+unsafe extern "C" {
+    #[doc = " Returns the content if the value is bool.\nReturns NULL if `val` is NULL or type is not bool."]
+    #[link_name = "yyjson_mut_get_bool__extern"]
+    pub fn yyjson_mut_get_bool(val: *mut yyjson_mut_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Returns the content and cast to uint64_t.\nReturns 0 if `val` is NULL or type is not integer(sint/uint)."]
+    #[link_name = "yyjson_mut_get_uint__extern"]
+    pub fn yyjson_mut_get_uint(val: *mut yyjson_mut_val) -> u64;
+}
+unsafe extern "C" {
+    #[doc = " Returns the content and cast to int64_t.\nReturns 0 if `val` is NULL or type is not integer(sint/uint)."]
+    #[link_name = "yyjson_mut_get_sint__extern"]
+    pub fn yyjson_mut_get_sint(val: *mut yyjson_mut_val) -> i64;
+}
+unsafe extern "C" {
+    #[doc = " Returns the content and cast to int.\nReturns 0 if `val` is NULL or type is not integer(sint/uint)."]
+    #[link_name = "yyjson_mut_get_int__extern"]
+    pub fn yyjson_mut_get_int(val: *mut yyjson_mut_val) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    #[doc = " Returns the content if the value is real number.\nReturns 0.0 if `val` is NULL or type is not real(double)."]
+    #[link_name = "yyjson_mut_get_real__extern"]
+    pub fn yyjson_mut_get_real(val: *mut yyjson_mut_val) -> f64;
+}
+unsafe extern "C" {
+    #[doc = " Returns the content and typecast to `double` if the value is number.\nReturns 0.0 if `val` is NULL or type is not number(uint/sint/real)."]
+    #[link_name = "yyjson_mut_get_num__extern"]
+    pub fn yyjson_mut_get_num(val: *mut yyjson_mut_val) -> f64;
+}
+unsafe extern "C" {
+    #[doc = " Returns the content if the value is string.\nReturns NULL if `val` is NULL or type is not string."]
+    #[link_name = "yyjson_mut_get_str__extern"]
+    pub fn yyjson_mut_get_str(val: *mut yyjson_mut_val) -> *const ::std::os::raw::c_char;
+}
+unsafe extern "C" {
+    #[doc = " Returns the content length (string length, array size, object size.\nReturns 0 if `val` is NULL or type is not string/array/object."]
+    #[link_name = "yyjson_mut_get_len__extern"]
+    pub fn yyjson_mut_get_len(val: *mut yyjson_mut_val) -> usize;
+}
+unsafe extern "C" {
+    #[doc = " Returns whether the JSON value is equals to a string.\nThe `str` should be a null-terminated UTF-8 string.\nReturns false if input is NULL or type is not string."]
+    #[link_name = "yyjson_mut_equals_str__extern"]
+    pub fn yyjson_mut_equals_str(
+        val: *mut yyjson_mut_val,
+        str_: *const ::std::os::raw::c_char,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Returns whether the JSON value is equals to a string.\nThe `str` should be a UTF-8 string, null-terminator is not required.\nReturns false if input is NULL or type is not string."]
+    #[link_name = "yyjson_mut_equals_strn__extern"]
+    pub fn yyjson_mut_equals_strn(
+        val: *mut yyjson_mut_val,
+        str_: *const ::std::os::raw::c_char,
+        len: usize,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Returns whether two JSON values are equal (deep compare).\nReturns false if input is NULL.\n@note the result may be inaccurate if object has duplicate keys.\n@warning This function is recursive and may cause a stack overflow\nif the object level is too deep."]
+    #[link_name = "yyjson_mut_equals__extern"]
+    pub fn yyjson_mut_equals(lhs: *mut yyjson_mut_val, rhs: *mut yyjson_mut_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Set the value to raw.\nReturns false if input is NULL.\n@warning This function should not be used on an existing object or array."]
+    #[link_name = "yyjson_mut_set_raw__extern"]
+    pub fn yyjson_mut_set_raw(
+        val: *mut yyjson_mut_val,
+        raw: *const ::std::os::raw::c_char,
+        len: usize,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Set the value to null.\nReturns false if input is NULL.\n@warning This function should not be used on an existing object or array."]
+    #[link_name = "yyjson_mut_set_null__extern"]
+    pub fn yyjson_mut_set_null(val: *mut yyjson_mut_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Set the value to bool.\nReturns false if input is NULL.\n@warning This function should not be used on an existing object or array."]
+    #[link_name = "yyjson_mut_set_bool__extern"]
+    pub fn yyjson_mut_set_bool(val: *mut yyjson_mut_val, num: bool) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Set the value to uint.\nReturns false if input is NULL.\n@warning This function should not be used on an existing object or array."]
+    #[link_name = "yyjson_mut_set_uint__extern"]
+    pub fn yyjson_mut_set_uint(val: *mut yyjson_mut_val, num: u64) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Set the value to sint.\nReturns false if input is NULL.\n@warning This function should not be used on an existing object or array."]
+    #[link_name = "yyjson_mut_set_sint__extern"]
+    pub fn yyjson_mut_set_sint(val: *mut yyjson_mut_val, num: i64) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Set the value to int.\nReturns false if input is NULL.\n@warning This function should not be used on an existing object or array."]
+    #[link_name = "yyjson_mut_set_int__extern"]
+    pub fn yyjson_mut_set_int(val: *mut yyjson_mut_val, num: ::std::os::raw::c_int) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Set the value to float.\nReturns false if input is NULL.\n@warning This function should not be used on an existing object or array."]
+    #[link_name = "yyjson_mut_set_float__extern"]
+    pub fn yyjson_mut_set_float(val: *mut yyjson_mut_val, num: f32) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Set the value to double.\nReturns false if input is NULL.\n@warning This function should not be used on an existing object or array."]
+    #[link_name = "yyjson_mut_set_double__extern"]
+    pub fn yyjson_mut_set_double(val: *mut yyjson_mut_val, num: f64) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Set the value to real.\nReturns false if input is NULL.\n@warning This function should not be used on an existing object or array."]
+    #[link_name = "yyjson_mut_set_real__extern"]
+    pub fn yyjson_mut_set_real(val: *mut yyjson_mut_val, num: f64) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Set the floating-point number's output format to fixed-point notation.\nReturns false if input is NULL or `val` is not real type.\n@see YYJSON_WRITE_FP_TO_FIXED flag.\n@warning This will modify the `immutable` value, use with caution."]
+    #[link_name = "yyjson_mut_set_fp_to_fixed__extern"]
+    pub fn yyjson_mut_set_fp_to_fixed(
+        val: *mut yyjson_mut_val,
+        prec: ::std::os::raw::c_int,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Set the floating-point number's output format to single-precision.\nReturns false if input is NULL or `val` is not real type.\n@see YYJSON_WRITE_FP_TO_FLOAT flag.\n@warning This will modify the `immutable` value, use with caution."]
+    #[link_name = "yyjson_mut_set_fp_to_float__extern"]
+    pub fn yyjson_mut_set_fp_to_float(val: *mut yyjson_mut_val, flt: bool) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Set the value to string (null-terminated).\nReturns false if input is NULL.\n@warning This function should not be used on an existing object or array."]
+    #[link_name = "yyjson_mut_set_str__extern"]
+    pub fn yyjson_mut_set_str(
+        val: *mut yyjson_mut_val,
+        str_: *const ::std::os::raw::c_char,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Set the value to string (with length).\nReturns false if input is NULL.\n@warning This function should not be used on an existing object or array."]
+    #[link_name = "yyjson_mut_set_strn__extern"]
+    pub fn yyjson_mut_set_strn(
+        val: *mut yyjson_mut_val,
+        str_: *const ::std::os::raw::c_char,
+        len: usize,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Marks this string as not needing to be escaped during JSON writing.\nThis can be used to avoid the overhead of escaping if the string contains\nonly characters that do not require escaping.\nReturns false if input is NULL or `val` is not string.\n@see YYJSON_SUBTYPE_NOESC subtype.\n@warning This will modify the `immutable` value, use with caution."]
+    #[link_name = "yyjson_mut_set_str_noesc__extern"]
+    pub fn yyjson_mut_set_str_noesc(val: *mut yyjson_mut_val, noesc: bool) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Set the value to array.\nReturns false if input is NULL.\n@warning This function should not be used on an existing object or array."]
+    #[link_name = "yyjson_mut_set_arr__extern"]
+    pub fn yyjson_mut_set_arr(val: *mut yyjson_mut_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Set the value to array.\nReturns false if input is NULL.\n@warning This function should not be used on an existing object or array."]
+    #[link_name = "yyjson_mut_set_obj__extern"]
+    pub fn yyjson_mut_set_obj(val: *mut yyjson_mut_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Creates and returns a raw value, returns NULL on error.\nThe `str` should be a null-terminated UTF-8 string.\n\n@warning The input string is not copied, you should keep this string\nunmodified for the lifetime of this JSON document."]
+    #[link_name = "yyjson_mut_raw__extern"]
+    pub fn yyjson_mut_raw(
+        doc: *mut yyjson_mut_doc,
+        str_: *const ::std::os::raw::c_char,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = " Creates and returns a raw value, returns NULL on error.\nThe `str` should be a UTF-8 string, null-terminator is not required.\n\n@warning The input string is not copied, you should keep this string\nunmodified for the lifetime of this JSON document."]
+    #[link_name = "yyjson_mut_rawn__extern"]
+    pub fn yyjson_mut_rawn(
+        doc: *mut yyjson_mut_doc,
+        str_: *const ::std::os::raw::c_char,
+        len: usize,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = " Creates and returns a raw value, returns NULL on error.\nThe `str` should be a null-terminated UTF-8 string.\nThe input string is copied and held by the document."]
+    #[link_name = "yyjson_mut_rawcpy__extern"]
+    pub fn yyjson_mut_rawcpy(
+        doc: *mut yyjson_mut_doc,
+        str_: *const ::std::os::raw::c_char,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = " Creates and returns a raw value, returns NULL on error.\nThe `str` should be a UTF-8 string, null-terminator is not required.\nThe input string is copied and held by the document."]
+    #[link_name = "yyjson_mut_rawncpy__extern"]
+    pub fn yyjson_mut_rawncpy(
+        doc: *mut yyjson_mut_doc,
+        str_: *const ::std::os::raw::c_char,
+        len: usize,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = " Creates and returns a null value, returns NULL on error."]
+    #[link_name = "yyjson_mut_null__extern"]
+    pub fn yyjson_mut_null(doc: *mut yyjson_mut_doc) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = " Creates and returns a true value, returns NULL on error."]
+    #[link_name = "yyjson_mut_true__extern"]
+    pub fn yyjson_mut_true(doc: *mut yyjson_mut_doc) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = " Creates and returns a false value, returns NULL on error."]
+    #[link_name = "yyjson_mut_false__extern"]
+    pub fn yyjson_mut_false(doc: *mut yyjson_mut_doc) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = " Creates and returns a bool value, returns NULL on error."]
+    #[link_name = "yyjson_mut_bool__extern"]
+    pub fn yyjson_mut_bool(doc: *mut yyjson_mut_doc, val: bool) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = " Creates and returns an unsigned integer value, returns NULL on error."]
+    #[link_name = "yyjson_mut_uint__extern"]
+    pub fn yyjson_mut_uint(doc: *mut yyjson_mut_doc, num: u64) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = " Creates and returns a signed integer value, returns NULL on error."]
+    #[link_name = "yyjson_mut_sint__extern"]
+    pub fn yyjson_mut_sint(doc: *mut yyjson_mut_doc, num: i64) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = " Creates and returns a signed integer value, returns NULL on error."]
+    #[link_name = "yyjson_mut_int__extern"]
+    pub fn yyjson_mut_int(doc: *mut yyjson_mut_doc, num: i64) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = " Creates and returns a float number value, returns NULL on error."]
+    #[link_name = "yyjson_mut_float__extern"]
+    pub fn yyjson_mut_float(doc: *mut yyjson_mut_doc, num: f32) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = " Creates and returns a double number value, returns NULL on error."]
+    #[link_name = "yyjson_mut_double__extern"]
+    pub fn yyjson_mut_double(doc: *mut yyjson_mut_doc, num: f64) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = " Creates and returns a real number value, returns NULL on error."]
+    #[link_name = "yyjson_mut_real__extern"]
+    pub fn yyjson_mut_real(doc: *mut yyjson_mut_doc, num: f64) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = " Creates and returns a string value, returns NULL on error.\nThe `str` should be a null-terminated UTF-8 string.\n@warning The input string is not copied, you should keep this string\nunmodified for the lifetime of this JSON document."]
+    #[link_name = "yyjson_mut_str__extern"]
+    pub fn yyjson_mut_str(
+        doc: *mut yyjson_mut_doc,
+        str_: *const ::std::os::raw::c_char,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = " Creates and returns a string value, returns NULL on error.\nThe `str` should be a UTF-8 string, null-terminator is not required.\n@warning The input string is not copied, you should keep this string\nunmodified for the lifetime of this JSON document."]
+    #[link_name = "yyjson_mut_strn__extern"]
+    pub fn yyjson_mut_strn(
+        doc: *mut yyjson_mut_doc,
+        str_: *const ::std::os::raw::c_char,
+        len: usize,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = " Creates and returns a string value, returns NULL on error.\nThe `str` should be a null-terminated UTF-8 string.\nThe input string is copied and held by the document."]
+    #[link_name = "yyjson_mut_strcpy__extern"]
+    pub fn yyjson_mut_strcpy(
+        doc: *mut yyjson_mut_doc,
+        str_: *const ::std::os::raw::c_char,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = " Creates and returns a string value, returns NULL on error.\nThe `str` should be a UTF-8 string, null-terminator is not required.\nThe input string is copied and held by the document."]
+    #[link_name = "yyjson_mut_strncpy__extern"]
+    pub fn yyjson_mut_strncpy(
+        doc: *mut yyjson_mut_doc,
+        str_: *const ::std::os::raw::c_char,
+        len: usize,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = " Returns the number of elements in this array.\nReturns 0 if `arr` is NULL or type is not array."]
+    #[link_name = "yyjson_mut_arr_size__extern"]
+    pub fn yyjson_mut_arr_size(arr: *mut yyjson_mut_val) -> usize;
+}
+unsafe extern "C" {
+    #[doc = " Returns the element at the specified position in this array.\nReturns NULL if array is NULL/empty or the index is out of bounds.\n@warning This function takes a linear search time."]
+    #[link_name = "yyjson_mut_arr_get__extern"]
+    pub fn yyjson_mut_arr_get(arr: *mut yyjson_mut_val, idx: usize) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = " Returns the first element of this array.\nReturns NULL if `arr` is NULL/empty or type is not array."]
+    #[link_name = "yyjson_mut_arr_get_first__extern"]
+    pub fn yyjson_mut_arr_get_first(arr: *mut yyjson_mut_val) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = " Returns the last element of this array.\nReturns NULL if `arr` is NULL/empty or type is not array."]
+    #[link_name = "yyjson_mut_arr_get_last__extern"]
+    pub fn yyjson_mut_arr_get_last(arr: *mut yyjson_mut_val) -> *mut yyjson_mut_val;
+}
 #[doc = "A mutable JSON array iterator.\n\n@warning You should not modify the array while iterating over it, but you can\nuse `yyjson_mut_arr_iter_remove()` to remove current value.\n\n@par Example\n@code\nyyjson_mut_val *val;\nyyjson_mut_arr_iter iter = yyjson_mut_arr_iter_with(arr);\nwhile ((val = yyjson_mut_arr_iter_next(&iter))) {\nyour_func(val);\nif (your_val_is_unused(val)) {\nyyjson_mut_arr_iter_remove(&iter);\n}\n}\n@endcode"]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -2876,6 +3716,420 @@ const _: () = {
     ["Offset of field: yyjson_mut_arr_iter::arr"]
         [::std::mem::offset_of!(yyjson_mut_arr_iter, arr) - 32usize];
 };
+unsafe extern "C" {
+    #[doc = "Initialize an iterator for this array.\n\n@param arr The array to be iterated over.\nIf this parameter is NULL or not an array, `iter` will be set to empty.\n@param iter The iterator to be initialized.\nIf this parameter is NULL, the function will fail and return false.\n@return true if the `iter` has been successfully initialized.\n\n@note The iterator does not need to be destroyed."]
+    #[link_name = "yyjson_mut_arr_iter_init__extern"]
+    pub fn yyjson_mut_arr_iter_init(
+        arr: *mut yyjson_mut_val,
+        iter: *mut yyjson_mut_arr_iter,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Create an iterator with an array , same as `yyjson_mut_arr_iter_init()`.\n\n@param arr The array to be iterated over.\nIf this parameter is NULL or not an array, an empty iterator will returned.\n@return A new iterator for the array.\n\n@note The iterator does not need to be destroyed."]
+    #[link_name = "yyjson_mut_arr_iter_with__extern"]
+    pub fn yyjson_mut_arr_iter_with(arr: *mut yyjson_mut_val) -> yyjson_mut_arr_iter;
+}
+unsafe extern "C" {
+    #[doc = "Returns whether the iteration has more elements.\nIf `iter` is NULL, this function will return false."]
+    #[link_name = "yyjson_mut_arr_iter_has_next__extern"]
+    pub fn yyjson_mut_arr_iter_has_next(iter: *mut yyjson_mut_arr_iter) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Returns the next element in the iteration, or NULL on end.\nIf `iter` is NULL, this function will return NULL."]
+    #[link_name = "yyjson_mut_arr_iter_next__extern"]
+    pub fn yyjson_mut_arr_iter_next(iter: *mut yyjson_mut_arr_iter) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Removes and returns current element in the iteration.\nIf `iter` is NULL, this function will return NULL."]
+    #[link_name = "yyjson_mut_arr_iter_remove__extern"]
+    pub fn yyjson_mut_arr_iter_remove(iter: *mut yyjson_mut_arr_iter) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Creates and returns an empty mutable array.\n@param doc A mutable document, used for memory allocation only.\n@return The new array. NULL if input is NULL or memory allocation failed."]
+    #[link_name = "yyjson_mut_arr__extern"]
+    pub fn yyjson_mut_arr(doc: *mut yyjson_mut_doc) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Creates and returns a new mutable array with the given boolean values.\n\n@param doc A mutable document, used for memory allocation only.\nIf this parameter is NULL, the function will fail and return NULL.\n@param vals A C array of boolean values.\n@param count The value count. If this value is 0, an empty array will return.\n@return The new array. NULL if input is invalid or memory allocation failed.\n\n@par Example\n@code\nconst bool vals[3] = { true, false, true };\nyyjson_mut_val *arr = yyjson_mut_arr_with_bool(doc, vals, 3);\n@endcode"]
+    #[link_name = "yyjson_mut_arr_with_bool__extern"]
+    pub fn yyjson_mut_arr_with_bool(
+        doc: *mut yyjson_mut_doc,
+        vals: *const bool,
+        count: usize,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Creates and returns a new mutable array with the given sint numbers.\n\n@param doc A mutable document, used for memory allocation only.\nIf this parameter is NULL, the function will fail and return NULL.\n@param vals A C array of sint numbers.\n@param count The number count. If this value is 0, an empty array will return.\n@return The new array. NULL if input is invalid or memory allocation failed.\n\n@par Example\n@code\nconst int64_t vals[3] = { -1, 0, 1 };\nyyjson_mut_val *arr = yyjson_mut_arr_with_sint64(doc, vals, 3);\n@endcode"]
+    #[link_name = "yyjson_mut_arr_with_sint__extern"]
+    pub fn yyjson_mut_arr_with_sint(
+        doc: *mut yyjson_mut_doc,
+        vals: *const i64,
+        count: usize,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Creates and returns a new mutable array with the given uint numbers.\n\n@param doc A mutable document, used for memory allocation only.\nIf this parameter is NULL, the function will fail and return NULL.\n@param vals A C array of uint numbers.\n@param count The number count. If this value is 0, an empty array will return.\n@return The new array. NULL if input is invalid or memory allocation failed.\n\n@par Example\n@code\nconst uint64_t vals[3] = { 0, 1, 0 };\nyyjson_mut_val *arr = yyjson_mut_arr_with_uint(doc, vals, 3);\n@endcode"]
+    #[link_name = "yyjson_mut_arr_with_uint__extern"]
+    pub fn yyjson_mut_arr_with_uint(
+        doc: *mut yyjson_mut_doc,
+        vals: *const u64,
+        count: usize,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Creates and returns a new mutable array with the given real numbers.\n\n@param doc A mutable document, used for memory allocation only.\nIf this parameter is NULL, the function will fail and return NULL.\n@param vals A C array of real numbers.\n@param count The number count. If this value is 0, an empty array will return.\n@return The new array. NULL if input is invalid or memory allocation failed.\n\n@par Example\n@code\nconst double vals[3] = { 0.1, 0.2, 0.3 };\nyyjson_mut_val *arr = yyjson_mut_arr_with_real(doc, vals, 3);\n@endcode"]
+    #[link_name = "yyjson_mut_arr_with_real__extern"]
+    pub fn yyjson_mut_arr_with_real(
+        doc: *mut yyjson_mut_doc,
+        vals: *const f64,
+        count: usize,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Creates and returns a new mutable array with the given int8 numbers.\n\n@param doc A mutable document, used for memory allocation only.\nIf this parameter is NULL, the function will fail and return NULL.\n@param vals A C array of int8 numbers.\n@param count The number count. If this value is 0, an empty array will return.\n@return The new array. NULL if input is invalid or memory allocation failed.\n\n@par Example\n@code\nconst int8_t vals[3] = { -1, 0, 1 };\nyyjson_mut_val *arr = yyjson_mut_arr_with_sint8(doc, vals, 3);\n@endcode"]
+    #[link_name = "yyjson_mut_arr_with_sint8__extern"]
+    pub fn yyjson_mut_arr_with_sint8(
+        doc: *mut yyjson_mut_doc,
+        vals: *const i8,
+        count: usize,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Creates and returns a new mutable array with the given int16 numbers.\n\n@param doc A mutable document, used for memory allocation only.\nIf this parameter is NULL, the function will fail and return NULL.\n@param vals A C array of int16 numbers.\n@param count The number count. If this value is 0, an empty array will return.\n@return The new array. NULL if input is invalid or memory allocation failed.\n\n@par Example\n@code\nconst int16_t vals[3] = { -1, 0, 1 };\nyyjson_mut_val *arr = yyjson_mut_arr_with_sint16(doc, vals, 3);\n@endcode"]
+    #[link_name = "yyjson_mut_arr_with_sint16__extern"]
+    pub fn yyjson_mut_arr_with_sint16(
+        doc: *mut yyjson_mut_doc,
+        vals: *const i16,
+        count: usize,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Creates and returns a new mutable array with the given int32 numbers.\n\n@param doc A mutable document, used for memory allocation only.\nIf this parameter is NULL, the function will fail and return NULL.\n@param vals A C array of int32 numbers.\n@param count The number count. If this value is 0, an empty array will return.\n@return The new array. NULL if input is invalid or memory allocation failed.\n\n@par Example\n@code\nconst int32_t vals[3] = { -1, 0, 1 };\nyyjson_mut_val *arr = yyjson_mut_arr_with_sint32(doc, vals, 3);\n@endcode"]
+    #[link_name = "yyjson_mut_arr_with_sint32__extern"]
+    pub fn yyjson_mut_arr_with_sint32(
+        doc: *mut yyjson_mut_doc,
+        vals: *const i32,
+        count: usize,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Creates and returns a new mutable array with the given int64 numbers.\n\n@param doc A mutable document, used for memory allocation only.\nIf this parameter is NULL, the function will fail and return NULL.\n@param vals A C array of int64 numbers.\n@param count The number count. If this value is 0, an empty array will return.\n@return The new array. NULL if input is invalid or memory allocation failed.\n\n@par Example\n@code\nconst int64_t vals[3] = { -1, 0, 1 };\nyyjson_mut_val *arr = yyjson_mut_arr_with_sint64(doc, vals, 3);\n@endcode"]
+    #[link_name = "yyjson_mut_arr_with_sint64__extern"]
+    pub fn yyjson_mut_arr_with_sint64(
+        doc: *mut yyjson_mut_doc,
+        vals: *const i64,
+        count: usize,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Creates and returns a new mutable array with the given uint8 numbers.\n\n@param doc A mutable document, used for memory allocation only.\nIf this parameter is NULL, the function will fail and return NULL.\n@param vals A C array of uint8 numbers.\n@param count The number count. If this value is 0, an empty array will return.\n@return The new array. NULL if input is invalid or memory allocation failed.\n\n@par Example\n@code\nconst uint8_t vals[3] = { 0, 1, 0 };\nyyjson_mut_val *arr = yyjson_mut_arr_with_uint8(doc, vals, 3);\n@endcode"]
+    #[link_name = "yyjson_mut_arr_with_uint8__extern"]
+    pub fn yyjson_mut_arr_with_uint8(
+        doc: *mut yyjson_mut_doc,
+        vals: *const u8,
+        count: usize,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Creates and returns a new mutable array with the given uint16 numbers.\n\n@param doc A mutable document, used for memory allocation only.\nIf this parameter is NULL, the function will fail and return NULL.\n@param vals A C array of uint16 numbers.\n@param count The number count. If this value is 0, an empty array will return.\n@return The new array. NULL if input is invalid or memory allocation failed.\n\n@par Example\n@code\nconst uint16_t vals[3] = { 0, 1, 0 };\nyyjson_mut_val *arr = yyjson_mut_arr_with_uint16(doc, vals, 3);\n@endcode"]
+    #[link_name = "yyjson_mut_arr_with_uint16__extern"]
+    pub fn yyjson_mut_arr_with_uint16(
+        doc: *mut yyjson_mut_doc,
+        vals: *const u16,
+        count: usize,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Creates and returns a new mutable array with the given uint32 numbers.\n\n@param doc A mutable document, used for memory allocation only.\nIf this parameter is NULL, the function will fail and return NULL.\n@param vals A C array of uint32 numbers.\n@param count The number count. If this value is 0, an empty array will return.\n@return The new array. NULL if input is invalid or memory allocation failed.\n\n@par Example\n@code\nconst uint32_t vals[3] = { 0, 1, 0 };\nyyjson_mut_val *arr = yyjson_mut_arr_with_uint32(doc, vals, 3);\n@endcode"]
+    #[link_name = "yyjson_mut_arr_with_uint32__extern"]
+    pub fn yyjson_mut_arr_with_uint32(
+        doc: *mut yyjson_mut_doc,
+        vals: *const u32,
+        count: usize,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Creates and returns a new mutable array with the given uint64 numbers.\n\n@param doc A mutable document, used for memory allocation only.\nIf this parameter is NULL, the function will fail and return NULL.\n@param vals A C array of uint64 numbers.\n@param count The number count. If this value is 0, an empty array will return.\n@return The new array. NULL if input is invalid or memory allocation failed.\n\n@par Example\n@code\nconst uint64_t vals[3] = { 0, 1, 0 };\nyyjson_mut_val *arr = yyjson_mut_arr_with_uint64(doc, vals, 3);\n@endcode"]
+    #[link_name = "yyjson_mut_arr_with_uint64__extern"]
+    pub fn yyjson_mut_arr_with_uint64(
+        doc: *mut yyjson_mut_doc,
+        vals: *const u64,
+        count: usize,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Creates and returns a new mutable array with the given float numbers.\n\n@param doc A mutable document, used for memory allocation only.\nIf this parameter is NULL, the function will fail and return NULL.\n@param vals A C array of float numbers.\n@param count The number count. If this value is 0, an empty array will return.\n@return The new array. NULL if input is invalid or memory allocation failed.\n\n@par Example\n@code\nconst float vals[3] = { -1.0f, 0.0f, 1.0f };\nyyjson_mut_val *arr = yyjson_mut_arr_with_float(doc, vals, 3);\n@endcode"]
+    #[link_name = "yyjson_mut_arr_with_float__extern"]
+    pub fn yyjson_mut_arr_with_float(
+        doc: *mut yyjson_mut_doc,
+        vals: *const f32,
+        count: usize,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Creates and returns a new mutable array with the given double numbers.\n\n@param doc A mutable document, used for memory allocation only.\nIf this parameter is NULL, the function will fail and return NULL.\n@param vals A C array of double numbers.\n@param count The number count. If this value is 0, an empty array will return.\n@return The new array. NULL if input is invalid or memory allocation failed.\n\n@par Example\n@code\nconst double vals[3] = { -1.0, 0.0, 1.0 };\nyyjson_mut_val *arr = yyjson_mut_arr_with_double(doc, vals, 3);\n@endcode"]
+    #[link_name = "yyjson_mut_arr_with_double__extern"]
+    pub fn yyjson_mut_arr_with_double(
+        doc: *mut yyjson_mut_doc,
+        vals: *const f64,
+        count: usize,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Creates and returns a new mutable array with the given strings, these strings\nwill not be copied.\n\n@param doc A mutable document, used for memory allocation only.\nIf this parameter is NULL, the function will fail and return NULL.\n@param vals A C array of UTF-8 null-terminator strings.\nIf this array contains NULL, the function will fail and return NULL.\n@param count The number of values in `vals`.\nIf this value is 0, an empty array will return.\n@return The new array. NULL if input is invalid or memory allocation failed.\n\n@warning The input strings are not copied, you should keep these strings\nunmodified for the lifetime of this JSON document. If these strings will be\nmodified, you should use `yyjson_mut_arr_with_strcpy()` instead.\n\n@par Example\n@code\nconst char *vals[3] = { \"a\", \"b\", \"c\" };\nyyjson_mut_val *arr = yyjson_mut_arr_with_str(doc, vals, 3);\n@endcode"]
+    #[link_name = "yyjson_mut_arr_with_str__extern"]
+    pub fn yyjson_mut_arr_with_str(
+        doc: *mut yyjson_mut_doc,
+        vals: *mut *const ::std::os::raw::c_char,
+        count: usize,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Creates and returns a new mutable array with the given strings and string\nlengths, these strings will not be copied.\n\n@param doc A mutable document, used for memory allocation only.\nIf this parameter is NULL, the function will fail and return NULL.\n@param vals A C array of UTF-8 strings, null-terminator is not required.\nIf this array contains NULL, the function will fail and return NULL.\n@param lens A C array of string lengths, in bytes.\n@param count The number of strings in `vals`.\nIf this value is 0, an empty array will return.\n@return The new array. NULL if input is invalid or memory allocation failed.\n\n@warning The input strings are not copied, you should keep these strings\nunmodified for the lifetime of this JSON document. If these strings will be\nmodified, you should use `yyjson_mut_arr_with_strncpy()` instead.\n\n@par Example\n@code\nconst char *vals[3] = { \"a\", \"bb\", \"c\" };\nconst size_t lens[3] = { 1, 2, 1 };\nyyjson_mut_val *arr = yyjson_mut_arr_with_strn(doc, vals, lens, 3);\n@endcode"]
+    #[link_name = "yyjson_mut_arr_with_strn__extern"]
+    pub fn yyjson_mut_arr_with_strn(
+        doc: *mut yyjson_mut_doc,
+        vals: *mut *const ::std::os::raw::c_char,
+        lens: *const usize,
+        count: usize,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Creates and returns a new mutable array with the given strings, these strings\nwill be copied.\n\n@param doc A mutable document, used for memory allocation only.\nIf this parameter is NULL, the function will fail and return NULL.\n@param vals A C array of UTF-8 null-terminator strings.\nIf this array contains NULL, the function will fail and return NULL.\n@param count The number of values in `vals`.\nIf this value is 0, an empty array will return.\n@return The new array. NULL if input is invalid or memory allocation failed.\n\n@par Example\n@code\nconst char *vals[3] = { \"a\", \"b\", \"c\" };\nyyjson_mut_val *arr = yyjson_mut_arr_with_strcpy(doc, vals, 3);\n@endcode"]
+    #[link_name = "yyjson_mut_arr_with_strcpy__extern"]
+    pub fn yyjson_mut_arr_with_strcpy(
+        doc: *mut yyjson_mut_doc,
+        vals: *mut *const ::std::os::raw::c_char,
+        count: usize,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Creates and returns a new mutable array with the given strings and string\nlengths, these strings will be copied.\n\n@param doc A mutable document, used for memory allocation only.\nIf this parameter is NULL, the function will fail and return NULL.\n@param vals A C array of UTF-8 strings, null-terminator is not required.\nIf this array contains NULL, the function will fail and return NULL.\n@param lens A C array of string lengths, in bytes.\n@param count The number of strings in `vals`.\nIf this value is 0, an empty array will return.\n@return The new array. NULL if input is invalid or memory allocation failed.\n\n@par Example\n@code\nconst char *vals[3] = { \"a\", \"bb\", \"c\" };\nconst size_t lens[3] = { 1, 2, 1 };\nyyjson_mut_val *arr = yyjson_mut_arr_with_strn(doc, vals, lens, 3);\n@endcode"]
+    #[link_name = "yyjson_mut_arr_with_strncpy__extern"]
+    pub fn yyjson_mut_arr_with_strncpy(
+        doc: *mut yyjson_mut_doc,
+        vals: *mut *const ::std::os::raw::c_char,
+        lens: *const usize,
+        count: usize,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Inserts a value into an array at a given index.\n@param arr The array to which the value is to be inserted.\nReturns false if it is NULL or not an array.\n@param val The value to be inserted. Returns false if it is NULL.\n@param idx The index to which to insert the new value.\nReturns false if the index is out of range.\n@return Whether successful.\n@warning This function takes a linear search time."]
+    #[link_name = "yyjson_mut_arr_insert__extern"]
+    pub fn yyjson_mut_arr_insert(
+        arr: *mut yyjson_mut_val,
+        val: *mut yyjson_mut_val,
+        idx: usize,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Inserts a value at the end of the array.\n@param arr The array to which the value is to be inserted.\nReturns false if it is NULL or not an array.\n@param val The value to be inserted. Returns false if it is NULL.\n@return Whether successful."]
+    #[link_name = "yyjson_mut_arr_append__extern"]
+    pub fn yyjson_mut_arr_append(arr: *mut yyjson_mut_val, val: *mut yyjson_mut_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Inserts a value at the head of the array.\n@param arr The array to which the value is to be inserted.\nReturns false if it is NULL or not an array.\n@param val The value to be inserted. Returns false if it is NULL.\n@return    Whether successful."]
+    #[link_name = "yyjson_mut_arr_prepend__extern"]
+    pub fn yyjson_mut_arr_prepend(arr: *mut yyjson_mut_val, val: *mut yyjson_mut_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Replaces a value at index and returns old value.\n@param arr The array to which the value is to be replaced.\nReturns false if it is NULL or not an array.\n@param idx The index to which to replace the value.\nReturns false if the index is out of range.\n@param val The new value to replace. Returns false if it is NULL.\n@return Old value, or NULL on error.\n@warning This function takes a linear search time."]
+    #[link_name = "yyjson_mut_arr_replace__extern"]
+    pub fn yyjson_mut_arr_replace(
+        arr: *mut yyjson_mut_val,
+        idx: usize,
+        val: *mut yyjson_mut_val,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Removes and returns a value at index.\n@param arr The array from which the value is to be removed.\nReturns false if it is NULL or not an array.\n@param idx The index from which to remove the value.\nReturns false if the index is out of range.\n@return Old value, or NULL on error.\n@warning This function takes a linear search time."]
+    #[link_name = "yyjson_mut_arr_remove__extern"]
+    pub fn yyjson_mut_arr_remove(arr: *mut yyjson_mut_val, idx: usize) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Removes and returns the first value in this array.\n@param arr The array from which the value is to be removed.\nReturns false if it is NULL or not an array.\n@return The first value, or NULL on error."]
+    #[link_name = "yyjson_mut_arr_remove_first__extern"]
+    pub fn yyjson_mut_arr_remove_first(arr: *mut yyjson_mut_val) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Removes and returns the last value in this array.\n@param arr The array from which the value is to be removed.\nReturns false if it is NULL or not an array.\n@return The last value, or NULL on error."]
+    #[link_name = "yyjson_mut_arr_remove_last__extern"]
+    pub fn yyjson_mut_arr_remove_last(arr: *mut yyjson_mut_val) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Removes all values within a specified range in the array.\n@param arr The array from which the value is to be removed.\nReturns false if it is NULL or not an array.\n@param idx The start index of the range (0 is the first).\n@param len The number of items in the range (can be 0).\n@return Whether successful.\n@warning This function takes a linear search time."]
+    #[link_name = "yyjson_mut_arr_remove_range__extern"]
+    pub fn yyjson_mut_arr_remove_range(arr: *mut yyjson_mut_val, idx: usize, len: usize) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Removes all values in this array.\n@param arr The array from which all of the values are to be removed.\nReturns false if it is NULL or not an array.\n@return Whether successful."]
+    #[link_name = "yyjson_mut_arr_clear__extern"]
+    pub fn yyjson_mut_arr_clear(arr: *mut yyjson_mut_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Rotates values in this array for the given number of times.\nFor example: `[1,2,3,4,5]` rotate 2 is `[3,4,5,1,2]`.\n@param arr The array to be rotated.\n@param idx Index (or times) to rotate.\n@warning This function takes a linear search time."]
+    #[link_name = "yyjson_mut_arr_rotate__extern"]
+    pub fn yyjson_mut_arr_rotate(arr: *mut yyjson_mut_val, idx: usize) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Adds a value at the end of the array.\n@param arr The array to which the value is to be inserted.\nReturns false if it is NULL or not an array.\n@param val The value to be inserted. Returns false if it is NULL.\n@return Whether successful."]
+    #[link_name = "yyjson_mut_arr_add_val__extern"]
+    pub fn yyjson_mut_arr_add_val(arr: *mut yyjson_mut_val, val: *mut yyjson_mut_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Adds a `null` value at the end of the array.\n@param doc The `doc` is only used for memory allocation.\n@param arr The array to which the value is to be inserted.\nReturns false if it is NULL or not an array.\n@return Whether successful."]
+    #[link_name = "yyjson_mut_arr_add_null__extern"]
+    pub fn yyjson_mut_arr_add_null(doc: *mut yyjson_mut_doc, arr: *mut yyjson_mut_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Adds a `true` value at the end of the array.\n@param doc The `doc` is only used for memory allocation.\n@param arr The array to which the value is to be inserted.\nReturns false if it is NULL or not an array.\n@return Whether successful."]
+    #[link_name = "yyjson_mut_arr_add_true__extern"]
+    pub fn yyjson_mut_arr_add_true(doc: *mut yyjson_mut_doc, arr: *mut yyjson_mut_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Adds a `false` value at the end of the array.\n@param doc The `doc` is only used for memory allocation.\n@param arr The array to which the value is to be inserted.\nReturns false if it is NULL or not an array.\n@return Whether successful."]
+    #[link_name = "yyjson_mut_arr_add_false__extern"]
+    pub fn yyjson_mut_arr_add_false(doc: *mut yyjson_mut_doc, arr: *mut yyjson_mut_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Adds a bool value at the end of the array.\n@param doc The `doc` is only used for memory allocation.\n@param arr The array to which the value is to be inserted.\nReturns false if it is NULL or not an array.\n@param val The bool value to be added.\n@return Whether successful."]
+    #[link_name = "yyjson_mut_arr_add_bool__extern"]
+    pub fn yyjson_mut_arr_add_bool(
+        doc: *mut yyjson_mut_doc,
+        arr: *mut yyjson_mut_val,
+        val: bool,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Adds an unsigned integer value at the end of the array.\n@param doc The `doc` is only used for memory allocation.\n@param arr The array to which the value is to be inserted.\nReturns false if it is NULL or not an array.\n@param num The number to be added.\n@return Whether successful."]
+    #[link_name = "yyjson_mut_arr_add_uint__extern"]
+    pub fn yyjson_mut_arr_add_uint(
+        doc: *mut yyjson_mut_doc,
+        arr: *mut yyjson_mut_val,
+        num: u64,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Adds a signed integer value at the end of the array.\n@param doc The `doc` is only used for memory allocation.\n@param arr The array to which the value is to be inserted.\nReturns false if it is NULL or not an array.\n@param num The number to be added.\n@return Whether successful."]
+    #[link_name = "yyjson_mut_arr_add_sint__extern"]
+    pub fn yyjson_mut_arr_add_sint(
+        doc: *mut yyjson_mut_doc,
+        arr: *mut yyjson_mut_val,
+        num: i64,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Adds an integer value at the end of the array.\n@param doc The `doc` is only used for memory allocation.\n@param arr The array to which the value is to be inserted.\nReturns false if it is NULL or not an array.\n@param num The number to be added.\n@return Whether successful."]
+    #[link_name = "yyjson_mut_arr_add_int__extern"]
+    pub fn yyjson_mut_arr_add_int(
+        doc: *mut yyjson_mut_doc,
+        arr: *mut yyjson_mut_val,
+        num: i64,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Adds a float value at the end of the array.\n@param doc The `doc` is only used for memory allocation.\n@param arr The array to which the value is to be inserted.\nReturns false if it is NULL or not an array.\n@param num The number to be added.\n@return Whether successful."]
+    #[link_name = "yyjson_mut_arr_add_float__extern"]
+    pub fn yyjson_mut_arr_add_float(
+        doc: *mut yyjson_mut_doc,
+        arr: *mut yyjson_mut_val,
+        num: f32,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Adds a double value at the end of the array.\n@param doc The `doc` is only used for memory allocation.\n@param arr The array to which the value is to be inserted.\nReturns false if it is NULL or not an array.\n@param num The number to be added.\n@return Whether successful."]
+    #[link_name = "yyjson_mut_arr_add_double__extern"]
+    pub fn yyjson_mut_arr_add_double(
+        doc: *mut yyjson_mut_doc,
+        arr: *mut yyjson_mut_val,
+        num: f64,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Adds a double value at the end of the array.\n@param doc The `doc` is only used for memory allocation.\n@param arr The array to which the value is to be inserted.\nReturns false if it is NULL or not an array.\n@param num The number to be added.\n@return Whether successful."]
+    #[link_name = "yyjson_mut_arr_add_real__extern"]
+    pub fn yyjson_mut_arr_add_real(
+        doc: *mut yyjson_mut_doc,
+        arr: *mut yyjson_mut_val,
+        num: f64,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Adds a string value at the end of the array (no copy).\n@param doc The `doc` is only used for memory allocation.\n@param arr The array to which the value is to be inserted.\nReturns false if it is NULL or not an array.\n@param str A null-terminated UTF-8 string.\n@return Whether successful.\n@warning The input string is not copied, you should keep this string unmodified\nfor the lifetime of this JSON document."]
+    #[link_name = "yyjson_mut_arr_add_str__extern"]
+    pub fn yyjson_mut_arr_add_str(
+        doc: *mut yyjson_mut_doc,
+        arr: *mut yyjson_mut_val,
+        str_: *const ::std::os::raw::c_char,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Adds a string value at the end of the array (no copy).\n@param doc The `doc` is only used for memory allocation.\n@param arr The array to which the value is to be inserted.\nReturns false if it is NULL or not an array.\n@param str A UTF-8 string, null-terminator is not required.\n@param len The length of the string, in bytes.\n@return Whether successful.\n@warning The input string is not copied, you should keep this string unmodified\nfor the lifetime of this JSON document."]
+    #[link_name = "yyjson_mut_arr_add_strn__extern"]
+    pub fn yyjson_mut_arr_add_strn(
+        doc: *mut yyjson_mut_doc,
+        arr: *mut yyjson_mut_val,
+        str_: *const ::std::os::raw::c_char,
+        len: usize,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Adds a string value at the end of the array (copied).\n@param doc The `doc` is only used for memory allocation.\n@param arr The array to which the value is to be inserted.\nReturns false if it is NULL or not an array.\n@param str A null-terminated UTF-8 string.\n@return Whether successful."]
+    #[link_name = "yyjson_mut_arr_add_strcpy__extern"]
+    pub fn yyjson_mut_arr_add_strcpy(
+        doc: *mut yyjson_mut_doc,
+        arr: *mut yyjson_mut_val,
+        str_: *const ::std::os::raw::c_char,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Adds a string value at the end of the array (copied).\n@param doc The `doc` is only used for memory allocation.\n@param arr The array to which the value is to be inserted.\nReturns false if it is NULL or not an array.\n@param str A UTF-8 string, null-terminator is not required.\n@param len The length of the string, in bytes.\n@return Whether successful."]
+    #[link_name = "yyjson_mut_arr_add_strncpy__extern"]
+    pub fn yyjson_mut_arr_add_strncpy(
+        doc: *mut yyjson_mut_doc,
+        arr: *mut yyjson_mut_val,
+        str_: *const ::std::os::raw::c_char,
+        len: usize,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Creates and adds a new array at the end of the array.\n@param doc The `doc` is only used for memory allocation.\n@param arr The array to which the value is to be inserted.\nReturns false if it is NULL or not an array.\n@return The new array, or NULL on error."]
+    #[link_name = "yyjson_mut_arr_add_arr__extern"]
+    pub fn yyjson_mut_arr_add_arr(
+        doc: *mut yyjson_mut_doc,
+        arr: *mut yyjson_mut_val,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Creates and adds a new object at the end of the array.\n@param doc The `doc` is only used for memory allocation.\n@param arr The array to which the value is to be inserted.\nReturns false if it is NULL or not an array.\n@return The new object, or NULL on error."]
+    #[link_name = "yyjson_mut_arr_add_obj__extern"]
+    pub fn yyjson_mut_arr_add_obj(
+        doc: *mut yyjson_mut_doc,
+        arr: *mut yyjson_mut_val,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = " Returns the number of key-value pairs in this object.\nReturns 0 if `obj` is NULL or type is not object."]
+    #[link_name = "yyjson_mut_obj_size__extern"]
+    pub fn yyjson_mut_obj_size(obj: *mut yyjson_mut_val) -> usize;
+}
+unsafe extern "C" {
+    #[doc = " Returns the value to which the specified key is mapped.\nReturns NULL if this object contains no mapping for the key.\nReturns NULL if `obj/key` is NULL, or type is not object.\n\nThe `key` should be a null-terminated UTF-8 string.\n\n@warning This function takes a linear search time."]
+    #[link_name = "yyjson_mut_obj_get__extern"]
+    pub fn yyjson_mut_obj_get(
+        obj: *mut yyjson_mut_val,
+        key: *const ::std::os::raw::c_char,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = " Returns the value to which the specified key is mapped.\nReturns NULL if this object contains no mapping for the key.\nReturns NULL if `obj/key` is NULL, or type is not object.\n\nThe `key` should be a UTF-8 string, null-terminator is not required.\nThe `key_len` should be the length of the key, in bytes.\n\n@warning This function takes a linear search time."]
+    #[link_name = "yyjson_mut_obj_getn__extern"]
+    pub fn yyjson_mut_obj_getn(
+        obj: *mut yyjson_mut_val,
+        key: *const ::std::os::raw::c_char,
+        key_len: usize,
+    ) -> *mut yyjson_mut_val;
+}
 #[doc = "A mutable JSON object iterator.\n\n@warning You should not modify the object while iterating over it, but you can\nuse `yyjson_mut_obj_iter_remove()` to remove current value.\n\n@par Example\n@code\nyyjson_mut_val *key, *val;\nyyjson_mut_obj_iter iter = yyjson_mut_obj_iter_with(obj);\nwhile ((key = yyjson_mut_obj_iter_next(&iter))) {\nval = yyjson_mut_obj_iter_get_val(key);\nyour_func(key, val);\nif (your_val_is_unused(key, val)) {\nyyjson_mut_obj_iter_remove(&iter);\n}\n}\n@endcode\n\nIf the ordering of the keys is known at compile-time, you can use this method\nto speed up value lookups:\n@code\n// {\"k1\":1, \"k2\": 3, \"k3\": 3}\nyyjson_mut_val *key, *val;\nyyjson_mut_obj_iter iter = yyjson_mut_obj_iter_with(obj);\nyyjson_mut_val *v1 = yyjson_mut_obj_iter_get(&iter, \"k1\");\nyyjson_mut_val *v3 = yyjson_mut_obj_iter_get(&iter, \"k3\");\n@endcode\n@see `yyjson_mut_obj_iter_get()` and `yyjson_mut_obj_iter_getn()`"]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -2906,6 +4160,358 @@ const _: () = {
     ["Offset of field: yyjson_mut_obj_iter::obj"]
         [::std::mem::offset_of!(yyjson_mut_obj_iter, obj) - 32usize];
 };
+unsafe extern "C" {
+    #[doc = "Initialize an iterator for this object.\n\n@param obj The object to be iterated over.\nIf this parameter is NULL or not an array, `iter` will be set to empty.\n@param iter The iterator to be initialized.\nIf this parameter is NULL, the function will fail and return false.\n@return true if the `iter` has been successfully initialized.\n\n@note The iterator does not need to be destroyed."]
+    #[link_name = "yyjson_mut_obj_iter_init__extern"]
+    pub fn yyjson_mut_obj_iter_init(
+        obj: *mut yyjson_mut_val,
+        iter: *mut yyjson_mut_obj_iter,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Create an iterator with an object, same as `yyjson_obj_iter_init()`.\n\n@param obj The object to be iterated over.\nIf this parameter is NULL or not an object, an empty iterator will returned.\n@return A new iterator for the object.\n\n@note The iterator does not need to be destroyed."]
+    #[link_name = "yyjson_mut_obj_iter_with__extern"]
+    pub fn yyjson_mut_obj_iter_with(obj: *mut yyjson_mut_val) -> yyjson_mut_obj_iter;
+}
+unsafe extern "C" {
+    #[doc = "Returns whether the iteration has more elements.\nIf `iter` is NULL, this function will return false."]
+    #[link_name = "yyjson_mut_obj_iter_has_next__extern"]
+    pub fn yyjson_mut_obj_iter_has_next(iter: *mut yyjson_mut_obj_iter) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Returns the next key in the iteration, or NULL on end.\nIf `iter` is NULL, this function will return NULL."]
+    #[link_name = "yyjson_mut_obj_iter_next__extern"]
+    pub fn yyjson_mut_obj_iter_next(iter: *mut yyjson_mut_obj_iter) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Returns the value for key inside the iteration.\nIf `iter` is NULL, this function will return NULL."]
+    #[link_name = "yyjson_mut_obj_iter_get_val__extern"]
+    pub fn yyjson_mut_obj_iter_get_val(key: *mut yyjson_mut_val) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Removes current key-value pair in the iteration, returns the removed value.\nIf `iter` is NULL, this function will return NULL."]
+    #[link_name = "yyjson_mut_obj_iter_remove__extern"]
+    pub fn yyjson_mut_obj_iter_remove(iter: *mut yyjson_mut_obj_iter) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Iterates to a specified key and returns the value.\n\nThis function does the same thing as `yyjson_mut_obj_get()`, but is much faster\nif the ordering of the keys is known at compile-time and you are using the same\norder to look up the values. If the key exists in this object, then the\niterator will stop at the next key, otherwise the iterator will not change and\nNULL is returned.\n\n@param iter The object iterator, should not be NULL.\n@param key The key, should be a UTF-8 string with null-terminator.\n@return The value to which the specified key is mapped.\nNULL if this object contains no mapping for the key or input is invalid.\n\n@warning This function takes a linear search time if the key is not nearby."]
+    #[link_name = "yyjson_mut_obj_iter_get__extern"]
+    pub fn yyjson_mut_obj_iter_get(
+        iter: *mut yyjson_mut_obj_iter,
+        key: *const ::std::os::raw::c_char,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Iterates to a specified key and returns the value.\n\nThis function does the same thing as `yyjson_mut_obj_getn()` but is much faster\nif the ordering of the keys is known at compile-time and you are using the same\norder to look up the values. If the key exists in this object, then the\niterator will stop at the next key, otherwise the iterator will not change and\nNULL is returned.\n\n@param iter The object iterator, should not be NULL.\n@param key The key, should be a UTF-8 string, null-terminator is not required.\n@param key_len The the length of `key`, in bytes.\n@return The value to which the specified key is mapped.\nNULL if this object contains no mapping for the key or input is invalid.\n\n@warning This function takes a linear search time if the key is not nearby."]
+    #[link_name = "yyjson_mut_obj_iter_getn__extern"]
+    pub fn yyjson_mut_obj_iter_getn(
+        iter: *mut yyjson_mut_obj_iter,
+        key: *const ::std::os::raw::c_char,
+        key_len: usize,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = " Creates and returns a mutable object, returns NULL on error."]
+    #[link_name = "yyjson_mut_obj__extern"]
+    pub fn yyjson_mut_obj(doc: *mut yyjson_mut_doc) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Creates and returns a mutable object with keys and values, returns NULL on\nerror. The keys and values are not copied. The strings should be a\nnull-terminated UTF-8 string.\n\n@warning The input string is not copied, you should keep this string\nunmodified for the lifetime of this JSON document.\n\n@par Example\n@code\nconst char *keys[2] = { \"id\", \"name\" };\nconst char *vals[2] = { \"01\", \"Harry\" };\nyyjson_mut_val *obj = yyjson_mut_obj_with_str(doc, keys, vals, 2);\n@endcode"]
+    #[link_name = "yyjson_mut_obj_with_str__extern"]
+    pub fn yyjson_mut_obj_with_str(
+        doc: *mut yyjson_mut_doc,
+        keys: *mut *const ::std::os::raw::c_char,
+        vals: *mut *const ::std::os::raw::c_char,
+        count: usize,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Creates and returns a mutable object with key-value pairs and pair count,\nreturns NULL on error. The keys and values are not copied. The strings should\nbe a null-terminated UTF-8 string.\n\n@warning The input string is not copied, you should keep this string\nunmodified for the lifetime of this JSON document.\n\n@par Example\n@code\nconst char *kv_pairs[4] = { \"id\", \"01\", \"name\", \"Harry\" };\nyyjson_mut_val *obj = yyjson_mut_obj_with_kv(doc, kv_pairs, 2);\n@endcode"]
+    #[link_name = "yyjson_mut_obj_with_kv__extern"]
+    pub fn yyjson_mut_obj_with_kv(
+        doc: *mut yyjson_mut_doc,
+        kv_pairs: *mut *const ::std::os::raw::c_char,
+        pair_count: usize,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Adds a key-value pair at the end of the object.\nThis function allows duplicated key in one object.\n@param obj The object to which the new key-value pair is to be added.\n@param key The key, should be a string which is created by `yyjson_mut_str()`,\n`yyjson_mut_strn()`, `yyjson_mut_strcpy()` or `yyjson_mut_strncpy()`.\n@param val The value to add to the object.\n@return Whether successful."]
+    #[link_name = "yyjson_mut_obj_add__extern"]
+    pub fn yyjson_mut_obj_add(
+        obj: *mut yyjson_mut_val,
+        key: *mut yyjson_mut_val,
+        val: *mut yyjson_mut_val,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Sets a key-value pair at the end of the object.\nThis function may remove all key-value pairs for the given key before add.\n@param obj The object to which the new key-value pair is to be added.\n@param key The key, should be a string which is created by `yyjson_mut_str()`,\n`yyjson_mut_strn()`, `yyjson_mut_strcpy()` or `yyjson_mut_strncpy()`.\n@param val The value to add to the object. If this value is null, the behavior\nis same as `yyjson_mut_obj_remove()`.\n@return Whether successful."]
+    #[link_name = "yyjson_mut_obj_put__extern"]
+    pub fn yyjson_mut_obj_put(
+        obj: *mut yyjson_mut_val,
+        key: *mut yyjson_mut_val,
+        val: *mut yyjson_mut_val,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Inserts a key-value pair to the object at the given position.\nThis function allows duplicated key in one object.\n@param obj The object to which the new key-value pair is to be added.\n@param key The key, should be a string which is created by `yyjson_mut_str()`,\n`yyjson_mut_strn()`, `yyjson_mut_strcpy()` or `yyjson_mut_strncpy()`.\n@param val The value to add to the object.\n@param idx The index to which to insert the new pair.\n@return Whether successful."]
+    #[link_name = "yyjson_mut_obj_insert__extern"]
+    pub fn yyjson_mut_obj_insert(
+        obj: *mut yyjson_mut_val,
+        key: *mut yyjson_mut_val,
+        val: *mut yyjson_mut_val,
+        idx: usize,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Removes all key-value pair from the object with given key.\n@param obj The object from which the key-value pair is to be removed.\n@param key The key, should be a string value.\n@return The first matched value, or NULL if no matched value.\n@warning This function takes a linear search time."]
+    #[link_name = "yyjson_mut_obj_remove__extern"]
+    pub fn yyjson_mut_obj_remove(
+        obj: *mut yyjson_mut_val,
+        key: *mut yyjson_mut_val,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Removes all key-value pair from the object with given key.\n@param obj The object from which the key-value pair is to be removed.\n@param key The key, should be a UTF-8 string with null-terminator.\n@return The first matched value, or NULL if no matched value.\n@warning This function takes a linear search time."]
+    #[link_name = "yyjson_mut_obj_remove_key__extern"]
+    pub fn yyjson_mut_obj_remove_key(
+        obj: *mut yyjson_mut_val,
+        key: *const ::std::os::raw::c_char,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Removes all key-value pair from the object with given key.\n@param obj The object from which the key-value pair is to be removed.\n@param key The key, should be a UTF-8 string, null-terminator is not required.\n@param key_len The length of the key.\n@return The first matched value, or NULL if no matched value.\n@warning This function takes a linear search time."]
+    #[link_name = "yyjson_mut_obj_remove_keyn__extern"]
+    pub fn yyjson_mut_obj_remove_keyn(
+        obj: *mut yyjson_mut_val,
+        key: *const ::std::os::raw::c_char,
+        key_len: usize,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Removes all key-value pairs in this object.\n@param obj The object from which all of the values are to be removed.\n@return Whether successful."]
+    #[link_name = "yyjson_mut_obj_clear__extern"]
+    pub fn yyjson_mut_obj_clear(obj: *mut yyjson_mut_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Replaces value from the object with given key.\nIf the key is not exist, or the value is NULL, it will fail.\n@param obj The object to which the value is to be replaced.\n@param key The key, should be a string value.\n@param val The value to replace into the object.\n@return Whether successful.\n@warning This function takes a linear search time."]
+    #[link_name = "yyjson_mut_obj_replace__extern"]
+    pub fn yyjson_mut_obj_replace(
+        obj: *mut yyjson_mut_val,
+        key: *mut yyjson_mut_val,
+        val: *mut yyjson_mut_val,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Rotates key-value pairs in the object for the given number of times.\nFor example: `{\"a\":1,\"b\":2,\"c\":3,\"d\":4}` rotate 1 is\n`{\"b\":2,\"c\":3,\"d\":4,\"a\":1}`.\n@param obj The object to be rotated.\n@param idx Index (or times) to rotate.\n@return Whether successful.\n@warning This function takes a linear search time."]
+    #[link_name = "yyjson_mut_obj_rotate__extern"]
+    pub fn yyjson_mut_obj_rotate(obj: *mut yyjson_mut_val, idx: usize) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Adds a `null` value at the end of the object.\nThe `key` should be a null-terminated UTF-8 string.\nThis function allows duplicated key in one object.\n\n@warning The key string is not copied, you should keep the string\nunmodified for the lifetime of this JSON document."]
+    #[link_name = "yyjson_mut_obj_add_null__extern"]
+    pub fn yyjson_mut_obj_add_null(
+        doc: *mut yyjson_mut_doc,
+        obj: *mut yyjson_mut_val,
+        key: *const ::std::os::raw::c_char,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Adds a `true` value at the end of the object.\nThe `key` should be a null-terminated UTF-8 string.\nThis function allows duplicated key in one object.\n\n@warning The key string is not copied, you should keep the string\nunmodified for the lifetime of this JSON document."]
+    #[link_name = "yyjson_mut_obj_add_true__extern"]
+    pub fn yyjson_mut_obj_add_true(
+        doc: *mut yyjson_mut_doc,
+        obj: *mut yyjson_mut_val,
+        key: *const ::std::os::raw::c_char,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Adds a `false` value at the end of the object.\nThe `key` should be a null-terminated UTF-8 string.\nThis function allows duplicated key in one object.\n\n@warning The key string is not copied, you should keep the string\nunmodified for the lifetime of this JSON document."]
+    #[link_name = "yyjson_mut_obj_add_false__extern"]
+    pub fn yyjson_mut_obj_add_false(
+        doc: *mut yyjson_mut_doc,
+        obj: *mut yyjson_mut_val,
+        key: *const ::std::os::raw::c_char,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Adds a bool value at the end of the object.\nThe `key` should be a null-terminated UTF-8 string.\nThis function allows duplicated key in one object.\n\n@warning The key string is not copied, you should keep the string\nunmodified for the lifetime of this JSON document."]
+    #[link_name = "yyjson_mut_obj_add_bool__extern"]
+    pub fn yyjson_mut_obj_add_bool(
+        doc: *mut yyjson_mut_doc,
+        obj: *mut yyjson_mut_val,
+        key: *const ::std::os::raw::c_char,
+        val: bool,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Adds an unsigned integer value at the end of the object.\nThe `key` should be a null-terminated UTF-8 string.\nThis function allows duplicated key in one object.\n\n@warning The key string is not copied, you should keep the string\nunmodified for the lifetime of this JSON document."]
+    #[link_name = "yyjson_mut_obj_add_uint__extern"]
+    pub fn yyjson_mut_obj_add_uint(
+        doc: *mut yyjson_mut_doc,
+        obj: *mut yyjson_mut_val,
+        key: *const ::std::os::raw::c_char,
+        val: u64,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Adds a signed integer value at the end of the object.\nThe `key` should be a null-terminated UTF-8 string.\nThis function allows duplicated key in one object.\n\n@warning The key string is not copied, you should keep the string\nunmodified for the lifetime of this JSON document."]
+    #[link_name = "yyjson_mut_obj_add_sint__extern"]
+    pub fn yyjson_mut_obj_add_sint(
+        doc: *mut yyjson_mut_doc,
+        obj: *mut yyjson_mut_val,
+        key: *const ::std::os::raw::c_char,
+        val: i64,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Adds an int value at the end of the object.\nThe `key` should be a null-terminated UTF-8 string.\nThis function allows duplicated key in one object.\n\n@warning The key string is not copied, you should keep the string\nunmodified for the lifetime of this JSON document."]
+    #[link_name = "yyjson_mut_obj_add_int__extern"]
+    pub fn yyjson_mut_obj_add_int(
+        doc: *mut yyjson_mut_doc,
+        obj: *mut yyjson_mut_val,
+        key: *const ::std::os::raw::c_char,
+        val: i64,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Adds a float value at the end of the object.\nThe `key` should be a null-terminated UTF-8 string.\nThis function allows duplicated key in one object.\n\n@warning The key string is not copied, you should keep the string\nunmodified for the lifetime of this JSON document."]
+    #[link_name = "yyjson_mut_obj_add_float__extern"]
+    pub fn yyjson_mut_obj_add_float(
+        doc: *mut yyjson_mut_doc,
+        obj: *mut yyjson_mut_val,
+        key: *const ::std::os::raw::c_char,
+        val: f32,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Adds a double value at the end of the object.\nThe `key` should be a null-terminated UTF-8 string.\nThis function allows duplicated key in one object.\n\n@warning The key string is not copied, you should keep the string\nunmodified for the lifetime of this JSON document."]
+    #[link_name = "yyjson_mut_obj_add_double__extern"]
+    pub fn yyjson_mut_obj_add_double(
+        doc: *mut yyjson_mut_doc,
+        obj: *mut yyjson_mut_val,
+        key: *const ::std::os::raw::c_char,
+        val: f64,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Adds a real value at the end of the object.\nThe `key` should be a null-terminated UTF-8 string.\nThis function allows duplicated key in one object.\n\n@warning The key string is not copied, you should keep the string\nunmodified for the lifetime of this JSON document."]
+    #[link_name = "yyjson_mut_obj_add_real__extern"]
+    pub fn yyjson_mut_obj_add_real(
+        doc: *mut yyjson_mut_doc,
+        obj: *mut yyjson_mut_val,
+        key: *const ::std::os::raw::c_char,
+        val: f64,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Adds a string value at the end of the object.\nThe `key` and `val` should be null-terminated UTF-8 strings.\nThis function allows duplicated key in one object.\n\n@warning The key/value strings are not copied, you should keep these strings\nunmodified for the lifetime of this JSON document."]
+    #[link_name = "yyjson_mut_obj_add_str__extern"]
+    pub fn yyjson_mut_obj_add_str(
+        doc: *mut yyjson_mut_doc,
+        obj: *mut yyjson_mut_val,
+        key: *const ::std::os::raw::c_char,
+        val: *const ::std::os::raw::c_char,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Adds a string value at the end of the object.\nThe `key` should be a null-terminated UTF-8 string.\nThe `val` should be a UTF-8 string, null-terminator is not required.\nThe `len` should be the length of the `val`, in bytes.\nThis function allows duplicated key in one object.\n\n@warning The key/value strings are not copied, you should keep these strings\nunmodified for the lifetime of this JSON document."]
+    #[link_name = "yyjson_mut_obj_add_strn__extern"]
+    pub fn yyjson_mut_obj_add_strn(
+        doc: *mut yyjson_mut_doc,
+        obj: *mut yyjson_mut_val,
+        key: *const ::std::os::raw::c_char,
+        val: *const ::std::os::raw::c_char,
+        len: usize,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Adds a string value at the end of the object.\nThe `key` and `val` should be null-terminated UTF-8 strings.\nThe value string is copied.\nThis function allows duplicated key in one object.\n\n@warning The key string is not copied, you should keep the string\nunmodified for the lifetime of this JSON document."]
+    #[link_name = "yyjson_mut_obj_add_strcpy__extern"]
+    pub fn yyjson_mut_obj_add_strcpy(
+        doc: *mut yyjson_mut_doc,
+        obj: *mut yyjson_mut_val,
+        key: *const ::std::os::raw::c_char,
+        val: *const ::std::os::raw::c_char,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Adds a string value at the end of the object.\nThe `key` should be a null-terminated UTF-8 string.\nThe `val` should be a UTF-8 string, null-terminator is not required.\nThe `len` should be the length of the `val`, in bytes.\nThis function allows duplicated key in one object.\n\n@warning The key strings are not copied, you should keep these strings\nunmodified for the lifetime of this JSON document."]
+    #[link_name = "yyjson_mut_obj_add_strncpy__extern"]
+    pub fn yyjson_mut_obj_add_strncpy(
+        doc: *mut yyjson_mut_doc,
+        obj: *mut yyjson_mut_val,
+        key: *const ::std::os::raw::c_char,
+        val: *const ::std::os::raw::c_char,
+        len: usize,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Creates and adds a new array to the target object.\nThe `key` should be a null-terminated UTF-8 string.\nThis function allows duplicated key in one object.\n\n@warning The key string is not copied, you should keep these strings\nunmodified for the lifetime of this JSON document.\n@return The new array, or NULL on error."]
+    #[link_name = "yyjson_mut_obj_add_arr__extern"]
+    pub fn yyjson_mut_obj_add_arr(
+        doc: *mut yyjson_mut_doc,
+        obj: *mut yyjson_mut_val,
+        key: *const ::std::os::raw::c_char,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Creates and adds a new object to the target object.\nThe `key` should be a null-terminated UTF-8 string.\nThis function allows duplicated key in one object.\n\n@warning The key string is not copied, you should keep these strings\nunmodified for the lifetime of this JSON document.\n@return The new object, or NULL on error."]
+    #[link_name = "yyjson_mut_obj_add_obj__extern"]
+    pub fn yyjson_mut_obj_add_obj(
+        doc: *mut yyjson_mut_doc,
+        obj: *mut yyjson_mut_val,
+        key: *const ::std::os::raw::c_char,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = " Adds a JSON value at the end of the object.\nThe `key` should be a null-terminated UTF-8 string.\nThis function allows duplicated key in one object.\n\n@warning The key string is not copied, you should keep the string\nunmodified for the lifetime of this JSON document."]
+    #[link_name = "yyjson_mut_obj_add_val__extern"]
+    pub fn yyjson_mut_obj_add_val(
+        doc: *mut yyjson_mut_doc,
+        obj: *mut yyjson_mut_val,
+        key: *const ::std::os::raw::c_char,
+        val: *mut yyjson_mut_val,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Removes all key-value pairs for the given key.\nReturns the first value to which the specified key is mapped or NULL if this\nobject contains no mapping for the key.\nThe `key` should be a null-terminated UTF-8 string.\n\n@warning This function takes a linear search time."]
+    #[link_name = "yyjson_mut_obj_remove_str__extern"]
+    pub fn yyjson_mut_obj_remove_str(
+        obj: *mut yyjson_mut_val,
+        key: *const ::std::os::raw::c_char,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = " Removes all key-value pairs for the given key.\nReturns the first value to which the specified key is mapped or NULL if this\nobject contains no mapping for the key.\nThe `key` should be a UTF-8 string, null-terminator is not required.\nThe `len` should be the length of the key, in bytes.\n\n@warning This function takes a linear search time."]
+    #[link_name = "yyjson_mut_obj_remove_strn__extern"]
+    pub fn yyjson_mut_obj_remove_strn(
+        obj: *mut yyjson_mut_val,
+        key: *const ::std::os::raw::c_char,
+        len: usize,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = " Replaces all matching keys with the new key.\nReturns true if at least one key was renamed.\nThe `key` and `new_key` should be a null-terminated UTF-8 string.\nThe `new_key` is copied and held by doc.\n\n@warning This function takes a linear search time.\nIf `new_key` already exists, it will cause duplicate keys."]
+    #[link_name = "yyjson_mut_obj_rename_key__extern"]
+    pub fn yyjson_mut_obj_rename_key(
+        doc: *mut yyjson_mut_doc,
+        obj: *mut yyjson_mut_val,
+        key: *const ::std::os::raw::c_char,
+        new_key: *const ::std::os::raw::c_char,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " Replaces all matching keys with the new key.\nReturns true if at least one key was renamed.\nThe `key` and `new_key` should be a UTF-8 string,\nnull-terminator is not required. The `new_key` is copied and held by doc.\n\n@warning This function takes a linear search time.\nIf `new_key` already exists, it will cause duplicate keys."]
+    #[link_name = "yyjson_mut_obj_rename_keyn__extern"]
+    pub fn yyjson_mut_obj_rename_keyn(
+        doc: *mut yyjson_mut_doc,
+        obj: *mut yyjson_mut_val,
+        key: *const ::std::os::raw::c_char,
+        len: usize,
+        new_key: *const ::std::os::raw::c_char,
+        new_len: usize,
+    ) -> bool;
+}
 #[doc = " JSON Pointer error code."]
 pub type yyjson_ptr_code = u32;
 #[doc = " No JSON pointer error."]
@@ -2961,6 +4567,387 @@ const _: () = {
     ["Offset of field: yyjson_ptr_ctx::pre"][::std::mem::offset_of!(yyjson_ptr_ctx, pre) - 8usize];
     ["Offset of field: yyjson_ptr_ctx::old"][::std::mem::offset_of!(yyjson_ptr_ctx, old) - 16usize];
 };
+unsafe extern "C" {
+    #[doc = "Get value by a JSON Pointer.\n@param doc The JSON document to be queried.\n@param ptr The JSON pointer string (UTF-8 with null-terminator).\n@return The value referenced by the JSON pointer.\nNULL if `doc` or `ptr` is NULL, or the JSON pointer cannot be resolved."]
+    #[link_name = "yyjson_doc_ptr_get__extern"]
+    pub fn yyjson_doc_ptr_get(
+        doc: *mut yyjson_doc,
+        ptr: *const ::std::os::raw::c_char,
+    ) -> *mut yyjson_val;
+}
+unsafe extern "C" {
+    #[doc = "Get value by a JSON Pointer.\n@param doc The JSON document to be queried.\n@param ptr The JSON pointer string (UTF-8, null-terminator is not required).\n@param len The length of `ptr` in bytes.\n@return The value referenced by the JSON pointer.\nNULL if `doc` or `ptr` is NULL, or the JSON pointer cannot be resolved."]
+    #[link_name = "yyjson_doc_ptr_getn__extern"]
+    pub fn yyjson_doc_ptr_getn(
+        doc: *mut yyjson_doc,
+        ptr: *const ::std::os::raw::c_char,
+        len: usize,
+    ) -> *mut yyjson_val;
+}
+unsafe extern "C" {
+    #[doc = "Get value by a JSON Pointer.\n@param doc The JSON document to be queried.\n@param ptr The JSON pointer string (UTF-8, null-terminator is not required).\n@param len The length of `ptr` in bytes.\n@param err A pointer to store the error information, or NULL if not needed.\n@return The value referenced by the JSON pointer.\nNULL if `doc` or `ptr` is NULL, or the JSON pointer cannot be resolved."]
+    #[link_name = "yyjson_doc_ptr_getx__extern"]
+    pub fn yyjson_doc_ptr_getx(
+        doc: *mut yyjson_doc,
+        ptr: *const ::std::os::raw::c_char,
+        len: usize,
+        err: *mut yyjson_ptr_err,
+    ) -> *mut yyjson_val;
+}
+unsafe extern "C" {
+    #[doc = "Get value by a JSON Pointer.\n@param val The JSON value to be queried.\n@param ptr The JSON pointer string (UTF-8 with null-terminator).\n@return The value referenced by the JSON pointer.\nNULL if `val` or `ptr` is NULL, or the JSON pointer cannot be resolved."]
+    #[link_name = "yyjson_ptr_get__extern"]
+    pub fn yyjson_ptr_get(
+        val: *mut yyjson_val,
+        ptr: *const ::std::os::raw::c_char,
+    ) -> *mut yyjson_val;
+}
+unsafe extern "C" {
+    #[doc = "Get value by a JSON Pointer.\n@param val The JSON value to be queried.\n@param ptr The JSON pointer string (UTF-8, null-terminator is not required).\n@param len The length of `ptr` in bytes.\n@return The value referenced by the JSON pointer.\nNULL if `val` or `ptr` is NULL, or the JSON pointer cannot be resolved."]
+    #[link_name = "yyjson_ptr_getn__extern"]
+    pub fn yyjson_ptr_getn(
+        val: *mut yyjson_val,
+        ptr: *const ::std::os::raw::c_char,
+        len: usize,
+    ) -> *mut yyjson_val;
+}
+unsafe extern "C" {
+    #[doc = "Get value by a JSON Pointer.\n@param val The JSON value to be queried.\n@param ptr The JSON pointer string (UTF-8, null-terminator is not required).\n@param len The length of `ptr` in bytes.\n@param err A pointer to store the error information, or NULL if not needed.\n@return The value referenced by the JSON pointer.\nNULL if `val` or `ptr` is NULL, or the JSON pointer cannot be resolved."]
+    #[link_name = "yyjson_ptr_getx__extern"]
+    pub fn yyjson_ptr_getx(
+        val: *mut yyjson_val,
+        ptr: *const ::std::os::raw::c_char,
+        len: usize,
+        err: *mut yyjson_ptr_err,
+    ) -> *mut yyjson_val;
+}
+unsafe extern "C" {
+    #[doc = "Get value by a JSON Pointer.\n@param doc The JSON document to be queried.\n@param ptr The JSON pointer string (UTF-8 with null-terminator).\n@return The value referenced by the JSON pointer.\nNULL if `doc` or `ptr` is NULL, or the JSON pointer cannot be resolved."]
+    #[link_name = "yyjson_mut_doc_ptr_get__extern"]
+    pub fn yyjson_mut_doc_ptr_get(
+        doc: *mut yyjson_mut_doc,
+        ptr: *const ::std::os::raw::c_char,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Get value by a JSON Pointer.\n@param doc The JSON document to be queried.\n@param ptr The JSON pointer string (UTF-8, null-terminator is not required).\n@param len The length of `ptr` in bytes.\n@return The value referenced by the JSON pointer.\nNULL if `doc` or `ptr` is NULL, or the JSON pointer cannot be resolved."]
+    #[link_name = "yyjson_mut_doc_ptr_getn__extern"]
+    pub fn yyjson_mut_doc_ptr_getn(
+        doc: *mut yyjson_mut_doc,
+        ptr: *const ::std::os::raw::c_char,
+        len: usize,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Get value by a JSON Pointer.\n@param doc The JSON document to be queried.\n@param ptr The JSON pointer string (UTF-8, null-terminator is not required).\n@param len The length of `ptr` in bytes.\n@param ctx A pointer to store the result context, or NULL if not needed.\n@param err A pointer to store the error information, or NULL if not needed.\n@return The value referenced by the JSON pointer.\nNULL if `doc` or `ptr` is NULL, or the JSON pointer cannot be resolved."]
+    #[link_name = "yyjson_mut_doc_ptr_getx__extern"]
+    pub fn yyjson_mut_doc_ptr_getx(
+        doc: *mut yyjson_mut_doc,
+        ptr: *const ::std::os::raw::c_char,
+        len: usize,
+        ctx: *mut yyjson_ptr_ctx,
+        err: *mut yyjson_ptr_err,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Get value by a JSON Pointer.\n@param val The JSON value to be queried.\n@param ptr The JSON pointer string (UTF-8 with null-terminator).\n@return The value referenced by the JSON pointer.\nNULL if `val` or `ptr` is NULL, or the JSON pointer cannot be resolved."]
+    #[link_name = "yyjson_mut_ptr_get__extern"]
+    pub fn yyjson_mut_ptr_get(
+        val: *mut yyjson_mut_val,
+        ptr: *const ::std::os::raw::c_char,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Get value by a JSON Pointer.\n@param val The JSON value to be queried.\n@param ptr The JSON pointer string (UTF-8, null-terminator is not required).\n@param len The length of `ptr` in bytes.\n@return The value referenced by the JSON pointer.\nNULL if `val` or `ptr` is NULL, or the JSON pointer cannot be resolved."]
+    #[link_name = "yyjson_mut_ptr_getn__extern"]
+    pub fn yyjson_mut_ptr_getn(
+        val: *mut yyjson_mut_val,
+        ptr: *const ::std::os::raw::c_char,
+        len: usize,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Get value by a JSON Pointer.\n@param val The JSON value to be queried.\n@param ptr The JSON pointer string (UTF-8, null-terminator is not required).\n@param len The length of `ptr` in bytes.\n@param ctx A pointer to store the result context, or NULL if not needed.\n@param err A pointer to store the error information, or NULL if not needed.\n@return The value referenced by the JSON pointer.\nNULL if `val` or `ptr` is NULL, or the JSON pointer cannot be resolved."]
+    #[link_name = "yyjson_mut_ptr_getx__extern"]
+    pub fn yyjson_mut_ptr_getx(
+        val: *mut yyjson_mut_val,
+        ptr: *const ::std::os::raw::c_char,
+        len: usize,
+        ctx: *mut yyjson_ptr_ctx,
+        err: *mut yyjson_ptr_err,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Add (insert) value by a JSON pointer.\n@param doc The target JSON document.\n@param ptr The JSON pointer string (UTF-8 with null-terminator).\n@param new_val The value to be added.\n@return true if JSON pointer is valid and new value is added, false otherwise.\n@note The parent nodes will be created if they do not exist."]
+    #[link_name = "yyjson_mut_doc_ptr_add__extern"]
+    pub fn yyjson_mut_doc_ptr_add(
+        doc: *mut yyjson_mut_doc,
+        ptr: *const ::std::os::raw::c_char,
+        new_val: *mut yyjson_mut_val,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Add (insert) value by a JSON pointer.\n@param doc The target JSON document.\n@param ptr The JSON pointer string (UTF-8, null-terminator is not required).\n@param len The length of `ptr` in bytes.\n@param new_val The value to be added.\n@return true if JSON pointer is valid and new value is added, false otherwise.\n@note The parent nodes will be created if they do not exist."]
+    #[link_name = "yyjson_mut_doc_ptr_addn__extern"]
+    pub fn yyjson_mut_doc_ptr_addn(
+        doc: *mut yyjson_mut_doc,
+        ptr: *const ::std::os::raw::c_char,
+        len: usize,
+        new_val: *mut yyjson_mut_val,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Add (insert) value by a JSON pointer.\n@param doc The target JSON document.\n@param ptr The JSON pointer string (UTF-8, null-terminator is not required).\n@param len The length of `ptr` in bytes.\n@param new_val The value to be added.\n@param create_parent Whether to create parent nodes if not exist.\n@param ctx A pointer to store the result context, or NULL if not needed.\n@param err A pointer to store the error information, or NULL if not needed.\n@return true if JSON pointer is valid and new value is added, false otherwise."]
+    #[link_name = "yyjson_mut_doc_ptr_addx__extern"]
+    pub fn yyjson_mut_doc_ptr_addx(
+        doc: *mut yyjson_mut_doc,
+        ptr: *const ::std::os::raw::c_char,
+        len: usize,
+        new_val: *mut yyjson_mut_val,
+        create_parent: bool,
+        ctx: *mut yyjson_ptr_ctx,
+        err: *mut yyjson_ptr_err,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Add (insert) value by a JSON pointer.\n@param val The target JSON value.\n@param ptr The JSON pointer string (UTF-8 with null-terminator).\n@param doc Only used to create new values when needed.\n@param new_val The value to be added.\n@return true if JSON pointer is valid and new value is added, false otherwise.\n@note The parent nodes will be created if they do not exist."]
+    #[link_name = "yyjson_mut_ptr_add__extern"]
+    pub fn yyjson_mut_ptr_add(
+        val: *mut yyjson_mut_val,
+        ptr: *const ::std::os::raw::c_char,
+        new_val: *mut yyjson_mut_val,
+        doc: *mut yyjson_mut_doc,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Add (insert) value by a JSON pointer.\n@param val The target JSON value.\n@param ptr The JSON pointer string (UTF-8, null-terminator is not required).\n@param len The length of `ptr` in bytes.\n@param doc Only used to create new values when needed.\n@param new_val The value to be added.\n@return true if JSON pointer is valid and new value is added, false otherwise.\n@note The parent nodes will be created if they do not exist."]
+    #[link_name = "yyjson_mut_ptr_addn__extern"]
+    pub fn yyjson_mut_ptr_addn(
+        val: *mut yyjson_mut_val,
+        ptr: *const ::std::os::raw::c_char,
+        len: usize,
+        new_val: *mut yyjson_mut_val,
+        doc: *mut yyjson_mut_doc,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Add (insert) value by a JSON pointer.\n@param val The target JSON value.\n@param ptr The JSON pointer string (UTF-8, null-terminator is not required).\n@param len The length of `ptr` in bytes.\n@param doc Only used to create new values when needed.\n@param new_val The value to be added.\n@param create_parent Whether to create parent nodes if not exist.\n@param ctx A pointer to store the result context, or NULL if not needed.\n@param err A pointer to store the error information, or NULL if not needed.\n@return true if JSON pointer is valid and new value is added, false otherwise."]
+    #[link_name = "yyjson_mut_ptr_addx__extern"]
+    pub fn yyjson_mut_ptr_addx(
+        val: *mut yyjson_mut_val,
+        ptr: *const ::std::os::raw::c_char,
+        len: usize,
+        new_val: *mut yyjson_mut_val,
+        doc: *mut yyjson_mut_doc,
+        create_parent: bool,
+        ctx: *mut yyjson_ptr_ctx,
+        err: *mut yyjson_ptr_err,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Set value by a JSON pointer.\n@param doc The target JSON document.\n@param ptr The JSON pointer string (UTF-8 with null-terminator).\n@param new_val The value to be set, pass NULL to remove.\n@return true if JSON pointer is valid and new value is set, false otherwise.\n@note The parent nodes will be created if they do not exist.\nIf the target value already exists, it will be replaced by the new value."]
+    #[link_name = "yyjson_mut_doc_ptr_set__extern"]
+    pub fn yyjson_mut_doc_ptr_set(
+        doc: *mut yyjson_mut_doc,
+        ptr: *const ::std::os::raw::c_char,
+        new_val: *mut yyjson_mut_val,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Set value by a JSON pointer.\n@param doc The target JSON document.\n@param ptr The JSON pointer string (UTF-8, null-terminator is not required).\n@param len The length of `ptr` in bytes.\n@param new_val The value to be set, pass NULL to remove.\n@return true if JSON pointer is valid and new value is set, false otherwise.\n@note The parent nodes will be created if they do not exist.\nIf the target value already exists, it will be replaced by the new value."]
+    #[link_name = "yyjson_mut_doc_ptr_setn__extern"]
+    pub fn yyjson_mut_doc_ptr_setn(
+        doc: *mut yyjson_mut_doc,
+        ptr: *const ::std::os::raw::c_char,
+        len: usize,
+        new_val: *mut yyjson_mut_val,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Set value by a JSON pointer.\n@param doc The target JSON document.\n@param ptr The JSON pointer string (UTF-8, null-terminator is not required).\n@param len The length of `ptr` in bytes.\n@param new_val The value to be set, pass NULL to remove.\n@param create_parent Whether to create parent nodes if not exist.\n@param ctx A pointer to store the result context, or NULL if not needed.\n@param err A pointer to store the error information, or NULL if not needed.\n@return true if JSON pointer is valid and new value is set, false otherwise.\n@note If the target value already exists, it will be replaced by the new value."]
+    #[link_name = "yyjson_mut_doc_ptr_setx__extern"]
+    pub fn yyjson_mut_doc_ptr_setx(
+        doc: *mut yyjson_mut_doc,
+        ptr: *const ::std::os::raw::c_char,
+        len: usize,
+        new_val: *mut yyjson_mut_val,
+        create_parent: bool,
+        ctx: *mut yyjson_ptr_ctx,
+        err: *mut yyjson_ptr_err,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Set value by a JSON pointer.\n@param val The target JSON value.\n@param ptr The JSON pointer string (UTF-8 with null-terminator).\n@param new_val The value to be set, pass NULL to remove.\n@param doc Only used to create new values when needed.\n@return true if JSON pointer is valid and new value is set, false otherwise.\n@note The parent nodes will be created if they do not exist.\nIf the target value already exists, it will be replaced by the new value."]
+    #[link_name = "yyjson_mut_ptr_set__extern"]
+    pub fn yyjson_mut_ptr_set(
+        val: *mut yyjson_mut_val,
+        ptr: *const ::std::os::raw::c_char,
+        new_val: *mut yyjson_mut_val,
+        doc: *mut yyjson_mut_doc,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Set value by a JSON pointer.\n@param val The target JSON value.\n@param ptr The JSON pointer string (UTF-8, null-terminator is not required).\n@param len The length of `ptr` in bytes.\n@param new_val The value to be set, pass NULL to remove.\n@param doc Only used to create new values when needed.\n@return true if JSON pointer is valid and new value is set, false otherwise.\n@note The parent nodes will be created if they do not exist.\nIf the target value already exists, it will be replaced by the new value."]
+    #[link_name = "yyjson_mut_ptr_setn__extern"]
+    pub fn yyjson_mut_ptr_setn(
+        val: *mut yyjson_mut_val,
+        ptr: *const ::std::os::raw::c_char,
+        len: usize,
+        new_val: *mut yyjson_mut_val,
+        doc: *mut yyjson_mut_doc,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Set value by a JSON pointer.\n@param val The target JSON value.\n@param ptr The JSON pointer string (UTF-8, null-terminator is not required).\n@param len The length of `ptr` in bytes.\n@param new_val The value to be set, pass NULL to remove.\n@param doc Only used to create new values when needed.\n@param create_parent Whether to create parent nodes if not exist.\n@param ctx A pointer to store the result context, or NULL if not needed.\n@param err A pointer to store the error information, or NULL if not needed.\n@return true if JSON pointer is valid and new value is set, false otherwise.\n@note If the target value already exists, it will be replaced by the new value."]
+    #[link_name = "yyjson_mut_ptr_setx__extern"]
+    pub fn yyjson_mut_ptr_setx(
+        val: *mut yyjson_mut_val,
+        ptr: *const ::std::os::raw::c_char,
+        len: usize,
+        new_val: *mut yyjson_mut_val,
+        doc: *mut yyjson_mut_doc,
+        create_parent: bool,
+        ctx: *mut yyjson_ptr_ctx,
+        err: *mut yyjson_ptr_err,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Replace value by a JSON pointer.\n@param doc The target JSON document.\n@param ptr The JSON pointer string (UTF-8 with null-terminator).\n@param new_val The new value to replace the old one.\n@return The old value that was replaced, or NULL if not found."]
+    #[link_name = "yyjson_mut_doc_ptr_replace__extern"]
+    pub fn yyjson_mut_doc_ptr_replace(
+        doc: *mut yyjson_mut_doc,
+        ptr: *const ::std::os::raw::c_char,
+        new_val: *mut yyjson_mut_val,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Replace value by a JSON pointer.\n@param doc The target JSON document.\n@param ptr The JSON pointer string (UTF-8, null-terminator is not required).\n@param len The length of `ptr` in bytes.\n@param new_val The new value to replace the old one.\n@return The old value that was replaced, or NULL if not found."]
+    #[link_name = "yyjson_mut_doc_ptr_replacen__extern"]
+    pub fn yyjson_mut_doc_ptr_replacen(
+        doc: *mut yyjson_mut_doc,
+        ptr: *const ::std::os::raw::c_char,
+        len: usize,
+        new_val: *mut yyjson_mut_val,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Replace value by a JSON pointer.\n@param doc The target JSON document.\n@param ptr The JSON pointer string (UTF-8, null-terminator is not required).\n@param len The length of `ptr` in bytes.\n@param new_val The new value to replace the old one.\n@param ctx A pointer to store the result context, or NULL if not needed.\n@param err A pointer to store the error information, or NULL if not needed.\n@return The old value that was replaced, or NULL if not found."]
+    #[link_name = "yyjson_mut_doc_ptr_replacex__extern"]
+    pub fn yyjson_mut_doc_ptr_replacex(
+        doc: *mut yyjson_mut_doc,
+        ptr: *const ::std::os::raw::c_char,
+        len: usize,
+        new_val: *mut yyjson_mut_val,
+        ctx: *mut yyjson_ptr_ctx,
+        err: *mut yyjson_ptr_err,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Replace value by a JSON pointer.\n@param val The target JSON value.\n@param ptr The JSON pointer string (UTF-8 with null-terminator).\n@param new_val The new value to replace the old one.\n@return The old value that was replaced, or NULL if not found."]
+    #[link_name = "yyjson_mut_ptr_replace__extern"]
+    pub fn yyjson_mut_ptr_replace(
+        val: *mut yyjson_mut_val,
+        ptr: *const ::std::os::raw::c_char,
+        new_val: *mut yyjson_mut_val,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Replace value by a JSON pointer.\n@param val The target JSON value.\n@param ptr The JSON pointer string (UTF-8, null-terminator is not required).\n@param len The length of `ptr` in bytes.\n@param new_val The new value to replace the old one.\n@return The old value that was replaced, or NULL if not found."]
+    #[link_name = "yyjson_mut_ptr_replacen__extern"]
+    pub fn yyjson_mut_ptr_replacen(
+        val: *mut yyjson_mut_val,
+        ptr: *const ::std::os::raw::c_char,
+        len: usize,
+        new_val: *mut yyjson_mut_val,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Replace value by a JSON pointer.\n@param val The target JSON value.\n@param ptr The JSON pointer string (UTF-8, null-terminator is not required).\n@param len The length of `ptr` in bytes.\n@param new_val The new value to replace the old one.\n@param ctx A pointer to store the result context, or NULL if not needed.\n@param err A pointer to store the error information, or NULL if not needed.\n@return The old value that was replaced, or NULL if not found."]
+    #[link_name = "yyjson_mut_ptr_replacex__extern"]
+    pub fn yyjson_mut_ptr_replacex(
+        val: *mut yyjson_mut_val,
+        ptr: *const ::std::os::raw::c_char,
+        len: usize,
+        new_val: *mut yyjson_mut_val,
+        ctx: *mut yyjson_ptr_ctx,
+        err: *mut yyjson_ptr_err,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Remove value by a JSON pointer.\n@param doc The target JSON document.\n@param ptr The JSON pointer string (UTF-8 with null-terminator).\n@return The removed value, or NULL on error."]
+    #[link_name = "yyjson_mut_doc_ptr_remove__extern"]
+    pub fn yyjson_mut_doc_ptr_remove(
+        doc: *mut yyjson_mut_doc,
+        ptr: *const ::std::os::raw::c_char,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Remove value by a JSON pointer.\n@param doc The target JSON document.\n@param ptr The JSON pointer string (UTF-8, null-terminator is not required).\n@param len The length of `ptr` in bytes.\n@return The removed value, or NULL on error."]
+    #[link_name = "yyjson_mut_doc_ptr_removen__extern"]
+    pub fn yyjson_mut_doc_ptr_removen(
+        doc: *mut yyjson_mut_doc,
+        ptr: *const ::std::os::raw::c_char,
+        len: usize,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Remove value by a JSON pointer.\n@param doc The target JSON document.\n@param ptr The JSON pointer string (UTF-8, null-terminator is not required).\n@param len The length of `ptr` in bytes.\n@param ctx A pointer to store the result context, or NULL if not needed.\n@param err A pointer to store the error information, or NULL if not needed.\n@return The removed value, or NULL on error."]
+    #[link_name = "yyjson_mut_doc_ptr_removex__extern"]
+    pub fn yyjson_mut_doc_ptr_removex(
+        doc: *mut yyjson_mut_doc,
+        ptr: *const ::std::os::raw::c_char,
+        len: usize,
+        ctx: *mut yyjson_ptr_ctx,
+        err: *mut yyjson_ptr_err,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Remove value by a JSON pointer.\n@param val The target JSON value.\n@param ptr The JSON pointer string (UTF-8 with null-terminator).\n@return The removed value, or NULL on error."]
+    #[link_name = "yyjson_mut_ptr_remove__extern"]
+    pub fn yyjson_mut_ptr_remove(
+        val: *mut yyjson_mut_val,
+        ptr: *const ::std::os::raw::c_char,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Remove value by a JSON pointer.\n@param val The target JSON value.\n@param ptr The JSON pointer string (UTF-8, null-terminator is not required).\n@param len The length of `ptr` in bytes.\n@return The removed value, or NULL on error."]
+    #[link_name = "yyjson_mut_ptr_removen__extern"]
+    pub fn yyjson_mut_ptr_removen(
+        val: *mut yyjson_mut_val,
+        ptr: *const ::std::os::raw::c_char,
+        len: usize,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Remove value by a JSON pointer.\n@param val The target JSON value.\n@param ptr The JSON pointer string (UTF-8, null-terminator is not required).\n@param len The length of `ptr` in bytes.\n@param ctx A pointer to store the result context, or NULL if not needed.\n@param err A pointer to store the error information, or NULL if not needed.\n@return The removed value, or NULL on error."]
+    #[link_name = "yyjson_mut_ptr_removex__extern"]
+    pub fn yyjson_mut_ptr_removex(
+        val: *mut yyjson_mut_val,
+        ptr: *const ::std::os::raw::c_char,
+        len: usize,
+        ctx: *mut yyjson_ptr_ctx,
+        err: *mut yyjson_ptr_err,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Append value by JSON pointer context.\n@param ctx The context from the `yyjson_mut_ptr_xxx()` calls.\n@param key New key if `ctx->ctn` is object, or NULL if `ctx->ctn` is array.\n@param val New value to be added.\n@return true on success or false on fail."]
+    #[link_name = "yyjson_ptr_ctx_append__extern"]
+    pub fn yyjson_ptr_ctx_append(
+        ctx: *mut yyjson_ptr_ctx,
+        key: *mut yyjson_mut_val,
+        val: *mut yyjson_mut_val,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Replace value by JSON pointer context.\n@param ctx The context from the `yyjson_mut_ptr_xxx()` calls.\n@param val New value to be replaced.\n@return true on success or false on fail.\n@note If success, the old value will be returned via `ctx->old`."]
+    #[link_name = "yyjson_ptr_ctx_replace__extern"]
+    pub fn yyjson_ptr_ctx_replace(ctx: *mut yyjson_ptr_ctx, val: *mut yyjson_mut_val) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Remove value by JSON pointer context.\n@param ctx The context from the `yyjson_mut_ptr_xxx()` calls.\n@return true on success or false on fail.\n@note If success, the old value will be returned via `ctx->old`."]
+    #[link_name = "yyjson_ptr_ctx_remove__extern"]
+    pub fn yyjson_ptr_ctx_remove(ctx: *mut yyjson_ptr_ctx) -> bool;
+}
 #[doc = " Result code for JSON patch."]
 pub type yyjson_patch_code = u32;
 #[doc = " Success, no error."]
@@ -3109,6 +5096,246 @@ const _: () = {
         [::std::mem::offset_of!(yyjson_doc, str_pool) - 56usize];
 };
 unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_is_str_noesc__extern"]
+    pub fn unsafe_yyjson_is_str_noesc(str_: *const ::std::os::raw::c_char, len: usize) -> bool;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_u64_to_f64__extern"]
+    pub fn unsafe_yyjson_u64_to_f64(num: u64) -> f64;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_get_type__extern"]
+    pub fn unsafe_yyjson_get_type(val: *mut ::std::os::raw::c_void) -> yyjson_type;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_get_subtype__extern"]
+    pub fn unsafe_yyjson_get_subtype(val: *mut ::std::os::raw::c_void) -> yyjson_subtype;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_get_tag__extern"]
+    pub fn unsafe_yyjson_get_tag(val: *mut ::std::os::raw::c_void) -> u8;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_is_raw__extern"]
+    pub fn unsafe_yyjson_is_raw(val: *mut ::std::os::raw::c_void) -> bool;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_is_null__extern"]
+    pub fn unsafe_yyjson_is_null(val: *mut ::std::os::raw::c_void) -> bool;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_is_bool__extern"]
+    pub fn unsafe_yyjson_is_bool(val: *mut ::std::os::raw::c_void) -> bool;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_is_num__extern"]
+    pub fn unsafe_yyjson_is_num(val: *mut ::std::os::raw::c_void) -> bool;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_is_str__extern"]
+    pub fn unsafe_yyjson_is_str(val: *mut ::std::os::raw::c_void) -> bool;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_is_arr__extern"]
+    pub fn unsafe_yyjson_is_arr(val: *mut ::std::os::raw::c_void) -> bool;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_is_obj__extern"]
+    pub fn unsafe_yyjson_is_obj(val: *mut ::std::os::raw::c_void) -> bool;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_is_ctn__extern"]
+    pub fn unsafe_yyjson_is_ctn(val: *mut ::std::os::raw::c_void) -> bool;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_is_uint__extern"]
+    pub fn unsafe_yyjson_is_uint(val: *mut ::std::os::raw::c_void) -> bool;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_is_sint__extern"]
+    pub fn unsafe_yyjson_is_sint(val: *mut ::std::os::raw::c_void) -> bool;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_is_int__extern"]
+    pub fn unsafe_yyjson_is_int(val: *mut ::std::os::raw::c_void) -> bool;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_is_real__extern"]
+    pub fn unsafe_yyjson_is_real(val: *mut ::std::os::raw::c_void) -> bool;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_is_true__extern"]
+    pub fn unsafe_yyjson_is_true(val: *mut ::std::os::raw::c_void) -> bool;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_is_false__extern"]
+    pub fn unsafe_yyjson_is_false(val: *mut ::std::os::raw::c_void) -> bool;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_arr_is_flat__extern"]
+    pub fn unsafe_yyjson_arr_is_flat(val: *mut yyjson_val) -> bool;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_get_raw__extern"]
+    pub fn unsafe_yyjson_get_raw(val: *mut ::std::os::raw::c_void)
+        -> *const ::std::os::raw::c_char;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_get_bool__extern"]
+    pub fn unsafe_yyjson_get_bool(val: *mut ::std::os::raw::c_void) -> bool;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_get_uint__extern"]
+    pub fn unsafe_yyjson_get_uint(val: *mut ::std::os::raw::c_void) -> u64;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_get_sint__extern"]
+    pub fn unsafe_yyjson_get_sint(val: *mut ::std::os::raw::c_void) -> i64;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_get_int__extern"]
+    pub fn unsafe_yyjson_get_int(val: *mut ::std::os::raw::c_void) -> ::std::os::raw::c_int;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_get_real__extern"]
+    pub fn unsafe_yyjson_get_real(val: *mut ::std::os::raw::c_void) -> f64;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_get_num__extern"]
+    pub fn unsafe_yyjson_get_num(val: *mut ::std::os::raw::c_void) -> f64;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_get_str__extern"]
+    pub fn unsafe_yyjson_get_str(val: *mut ::std::os::raw::c_void)
+        -> *const ::std::os::raw::c_char;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_get_len__extern"]
+    pub fn unsafe_yyjson_get_len(val: *mut ::std::os::raw::c_void) -> usize;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_get_first__extern"]
+    pub fn unsafe_yyjson_get_first(ctn: *mut yyjson_val) -> *mut yyjson_val;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_get_next__extern"]
+    pub fn unsafe_yyjson_get_next(val: *mut yyjson_val) -> *mut yyjson_val;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_equals_strn__extern"]
+    pub fn unsafe_yyjson_equals_strn(
+        val: *mut ::std::os::raw::c_void,
+        str_: *const ::std::os::raw::c_char,
+        len: usize,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_equals_str__extern"]
+    pub fn unsafe_yyjson_equals_str(
+        val: *mut ::std::os::raw::c_void,
+        str_: *const ::std::os::raw::c_char,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_set_type__extern"]
+    pub fn unsafe_yyjson_set_type(
+        val: *mut ::std::os::raw::c_void,
+        type_: yyjson_type,
+        subtype: yyjson_subtype,
+    );
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_set_len__extern"]
+    pub fn unsafe_yyjson_set_len(val: *mut ::std::os::raw::c_void, len: usize);
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_set_tag__extern"]
+    pub fn unsafe_yyjson_set_tag(
+        val: *mut ::std::os::raw::c_void,
+        type_: yyjson_type,
+        subtype: yyjson_subtype,
+        len: usize,
+    );
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_inc_len__extern"]
+    pub fn unsafe_yyjson_inc_len(val: *mut ::std::os::raw::c_void);
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_set_raw__extern"]
+    pub fn unsafe_yyjson_set_raw(
+        val: *mut ::std::os::raw::c_void,
+        raw: *const ::std::os::raw::c_char,
+        len: usize,
+    );
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_set_null__extern"]
+    pub fn unsafe_yyjson_set_null(val: *mut ::std::os::raw::c_void);
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_set_bool__extern"]
+    pub fn unsafe_yyjson_set_bool(val: *mut ::std::os::raw::c_void, num: bool);
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_set_uint__extern"]
+    pub fn unsafe_yyjson_set_uint(val: *mut ::std::os::raw::c_void, num: u64);
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_set_sint__extern"]
+    pub fn unsafe_yyjson_set_sint(val: *mut ::std::os::raw::c_void, num: i64);
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_set_fp_to_fixed__extern"]
+    pub fn unsafe_yyjson_set_fp_to_fixed(
+        val: *mut ::std::os::raw::c_void,
+        prec: ::std::os::raw::c_int,
+    );
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_set_fp_to_float__extern"]
+    pub fn unsafe_yyjson_set_fp_to_float(val: *mut ::std::os::raw::c_void, flt: bool);
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_set_float__extern"]
+    pub fn unsafe_yyjson_set_float(val: *mut ::std::os::raw::c_void, num: f32);
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_set_double__extern"]
+    pub fn unsafe_yyjson_set_double(val: *mut ::std::os::raw::c_void, num: f64);
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_set_real__extern"]
+    pub fn unsafe_yyjson_set_real(val: *mut ::std::os::raw::c_void, num: f64);
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_set_str_noesc__extern"]
+    pub fn unsafe_yyjson_set_str_noesc(val: *mut ::std::os::raw::c_void, noesc: bool);
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_set_strn__extern"]
+    pub fn unsafe_yyjson_set_strn(
+        val: *mut ::std::os::raw::c_void,
+        str_: *const ::std::os::raw::c_char,
+        len: usize,
+    );
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_set_str__extern"]
+    pub fn unsafe_yyjson_set_str(
+        val: *mut ::std::os::raw::c_void,
+        str_: *const ::std::os::raw::c_char,
+    );
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_set_arr__extern"]
+    pub fn unsafe_yyjson_set_arr(val: *mut ::std::os::raw::c_void, size: usize);
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_set_obj__extern"]
+    pub fn unsafe_yyjson_set_obj(val: *mut ::std::os::raw::c_void, size: usize);
+}
+unsafe extern "C" {
     pub fn unsafe_yyjson_equals(lhs: *mut yyjson_val, rhs: *mut yyjson_val) -> bool;
 }
 #[doc = "Mutable JSON value, 24 bytes.\nThe 'tag' and 'uni' field is same as immutable value.\nThe 'next' field links all elements inside the container to be a cycle."]
@@ -3252,7 +5479,55 @@ unsafe extern "C" {
     ) -> bool;
 }
 unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_mut_str_alc__extern"]
+    pub fn unsafe_yyjson_mut_str_alc(
+        doc: *mut yyjson_mut_doc,
+        len: usize,
+    ) -> *mut ::std::os::raw::c_char;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_mut_strncpy__extern"]
+    pub fn unsafe_yyjson_mut_strncpy(
+        doc: *mut yyjson_mut_doc,
+        str_: *const ::std::os::raw::c_char,
+        len: usize,
+    ) -> *mut ::std::os::raw::c_char;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_mut_val__extern"]
+    pub fn unsafe_yyjson_mut_val(doc: *mut yyjson_mut_doc, count: usize) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
     pub fn unsafe_yyjson_mut_equals(lhs: *mut yyjson_mut_val, rhs: *mut yyjson_mut_val) -> bool;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_mut_obj_add__extern"]
+    pub fn unsafe_yyjson_mut_obj_add(
+        obj: *mut yyjson_mut_val,
+        key: *mut yyjson_mut_val,
+        val: *mut yyjson_mut_val,
+        len: usize,
+    );
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_mut_obj_remove__extern"]
+    pub fn unsafe_yyjson_mut_obj_remove(
+        obj: *mut yyjson_mut_val,
+        key: *const ::std::os::raw::c_char,
+        key_len: usize,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_mut_obj_replace__extern"]
+    pub fn unsafe_yyjson_mut_obj_replace(
+        obj: *mut yyjson_mut_val,
+        key: *mut yyjson_mut_val,
+        val: *mut yyjson_mut_val,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[link_name = "unsafe_yyjson_mut_obj_rotate__extern"]
+    pub fn unsafe_yyjson_mut_obj_rotate(obj: *mut yyjson_mut_val, idx: usize);
 }
 unsafe extern "C" {
     pub fn unsafe_yyjson_ptr_getx(
@@ -3301,6 +5576,146 @@ unsafe extern "C" {
         len: usize,
         ctx: *mut yyjson_ptr_ctx,
         err: *mut yyjson_ptr_err,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = "Set provided `value` if the JSON Pointer (RFC 6901) exists and is type bool.\nReturns true if value at `ptr` exists and is the correct type, otherwise false."]
+    #[link_name = "yyjson_ptr_get_bool__extern"]
+    pub fn yyjson_ptr_get_bool(
+        root: *mut yyjson_val,
+        ptr: *const ::std::os::raw::c_char,
+        value: *mut bool,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Set provided `value` if the JSON Pointer (RFC 6901) exists and is an integer\nthat fits in `uint64_t`. Returns true if successful, otherwise false."]
+    #[link_name = "yyjson_ptr_get_uint__extern"]
+    pub fn yyjson_ptr_get_uint(
+        root: *mut yyjson_val,
+        ptr: *const ::std::os::raw::c_char,
+        value: *mut u64,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Set provided `value` if the JSON Pointer (RFC 6901) exists and is an integer\nthat fits in `int64_t`. Returns true if successful, otherwise false."]
+    #[link_name = "yyjson_ptr_get_sint__extern"]
+    pub fn yyjson_ptr_get_sint(
+        root: *mut yyjson_val,
+        ptr: *const ::std::os::raw::c_char,
+        value: *mut i64,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Set provided `value` if the JSON Pointer (RFC 6901) exists and is type real.\nReturns true if value at `ptr` exists and is the correct type, otherwise false."]
+    #[link_name = "yyjson_ptr_get_real__extern"]
+    pub fn yyjson_ptr_get_real(
+        root: *mut yyjson_val,
+        ptr: *const ::std::os::raw::c_char,
+        value: *mut f64,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Set provided `value` if the JSON Pointer (RFC 6901) exists and is type sint,\nuint or real.\nReturns true if value at `ptr` exists and is the correct type, otherwise false."]
+    #[link_name = "yyjson_ptr_get_num__extern"]
+    pub fn yyjson_ptr_get_num(
+        root: *mut yyjson_val,
+        ptr: *const ::std::os::raw::c_char,
+        value: *mut f64,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Set provided `value` if the JSON Pointer (RFC 6901) exists and is type string.\nReturns true if value at `ptr` exists and is the correct type, otherwise false."]
+    #[link_name = "yyjson_ptr_get_str__extern"]
+    pub fn yyjson_ptr_get_str(
+        root: *mut yyjson_val,
+        ptr: *const ::std::os::raw::c_char,
+        value: *mut *const ::std::os::raw::c_char,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = " @deprecated renamed to `yyjson_doc_ptr_get`"]
+    #[link_name = "yyjson_doc_get_pointer__extern"]
+    pub fn yyjson_doc_get_pointer(
+        doc: *mut yyjson_doc,
+        ptr: *const ::std::os::raw::c_char,
+    ) -> *mut yyjson_val;
+}
+unsafe extern "C" {
+    #[doc = " @deprecated renamed to `yyjson_doc_ptr_getn`"]
+    #[link_name = "yyjson_doc_get_pointern__extern"]
+    pub fn yyjson_doc_get_pointern(
+        doc: *mut yyjson_doc,
+        ptr: *const ::std::os::raw::c_char,
+        len: usize,
+    ) -> *mut yyjson_val;
+}
+unsafe extern "C" {
+    #[doc = " @deprecated renamed to `yyjson_mut_doc_ptr_get`"]
+    #[link_name = "yyjson_mut_doc_get_pointer__extern"]
+    pub fn yyjson_mut_doc_get_pointer(
+        doc: *mut yyjson_mut_doc,
+        ptr: *const ::std::os::raw::c_char,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = " @deprecated renamed to `yyjson_mut_doc_ptr_getn`"]
+    #[link_name = "yyjson_mut_doc_get_pointern__extern"]
+    pub fn yyjson_mut_doc_get_pointern(
+        doc: *mut yyjson_mut_doc,
+        ptr: *const ::std::os::raw::c_char,
+        len: usize,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = " @deprecated renamed to `yyjson_ptr_get`"]
+    #[link_name = "yyjson_get_pointer__extern"]
+    pub fn yyjson_get_pointer(
+        val: *mut yyjson_val,
+        ptr: *const ::std::os::raw::c_char,
+    ) -> *mut yyjson_val;
+}
+unsafe extern "C" {
+    #[doc = " @deprecated renamed to `yyjson_ptr_getn`"]
+    #[link_name = "yyjson_get_pointern__extern"]
+    pub fn yyjson_get_pointern(
+        val: *mut yyjson_val,
+        ptr: *const ::std::os::raw::c_char,
+        len: usize,
+    ) -> *mut yyjson_val;
+}
+unsafe extern "C" {
+    #[doc = " @deprecated renamed to `yyjson_mut_ptr_get`"]
+    #[link_name = "yyjson_mut_get_pointer__extern"]
+    pub fn yyjson_mut_get_pointer(
+        val: *mut yyjson_mut_val,
+        ptr: *const ::std::os::raw::c_char,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = " @deprecated renamed to `yyjson_mut_ptr_getn`"]
+    #[link_name = "yyjson_mut_get_pointern__extern"]
+    pub fn yyjson_mut_get_pointern(
+        val: *mut yyjson_mut_val,
+        ptr: *const ::std::os::raw::c_char,
+        len: usize,
+    ) -> *mut yyjson_mut_val;
+}
+unsafe extern "C" {
+    #[doc = " @deprecated renamed to `yyjson_mut_ptr_getn`"]
+    #[link_name = "unsafe_yyjson_get_pointer__extern"]
+    pub fn unsafe_yyjson_get_pointer(
+        val: *mut yyjson_val,
+        ptr: *const ::std::os::raw::c_char,
+        len: usize,
+    ) -> *mut yyjson_val;
+}
+unsafe extern "C" {
+    #[doc = " @deprecated renamed to `unsafe_yyjson_mut_ptr_getx`"]
+    #[link_name = "unsafe_yyjson_mut_get_pointer__extern"]
+    pub fn unsafe_yyjson_mut_get_pointer(
+        val: *mut yyjson_mut_val,
+        ptr: *const ::std::os::raw::c_char,
+        len: usize,
     ) -> *mut yyjson_mut_val;
 }
 pub type __builtin_va_list = [__va_list_tag; 1usize];
