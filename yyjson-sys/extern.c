@@ -11,10 +11,6 @@ __uint64_t __uint64_identity__extern(__uint64_t __x) { return __uint64_identity(
 yyjson_doc * yyjson_read__extern(const char *dat, size_t len, yyjson_read_flag flg) { return yyjson_read(dat, len, flg); }
 size_t yyjson_read_max_memory_usage__extern(size_t len, yyjson_read_flag flg) { return yyjson_read_max_memory_usage(len, flg); }
 const char * yyjson_mut_read_number__extern(const char *dat, yyjson_mut_val *val, yyjson_read_flag flg, const yyjson_alc *alc, yyjson_read_err *err) { return yyjson_mut_read_number(dat, val, flg, alc, err); }
-char * yyjson_write__extern(const yyjson_doc *doc, yyjson_write_flag flg, size_t *len) { return yyjson_write(doc, flg, len); }
-char * yyjson_mut_write__extern(const yyjson_mut_doc *doc, yyjson_write_flag flg, size_t *len) { return yyjson_mut_write(doc, flg, len); }
-char * yyjson_val_write__extern(const yyjson_val *val, yyjson_write_flag flg, size_t *len) { return yyjson_val_write(val, flg, len); }
-char * yyjson_mut_val_write__extern(const yyjson_mut_val *val, yyjson_write_flag flg, size_t *len) { return yyjson_mut_val_write(val, flg, len); }
 yyjson_val * yyjson_doc_get_root__extern(yyjson_doc *doc) { return yyjson_doc_get_root(doc); }
 size_t yyjson_doc_get_read_size__extern(yyjson_doc *doc) { return yyjson_doc_get_read_size(doc); }
 size_t yyjson_doc_get_val_count__extern(yyjson_doc *doc) { return yyjson_doc_get_val_count(doc); }
@@ -246,45 +242,6 @@ yyjson_mut_val * yyjson_mut_obj_remove_str__extern(yyjson_mut_val *obj, const ch
 yyjson_mut_val * yyjson_mut_obj_remove_strn__extern(yyjson_mut_val *obj, const char *key, size_t len) { return yyjson_mut_obj_remove_strn(obj, key, len); }
 bool yyjson_mut_obj_rename_key__extern(yyjson_mut_doc *doc, yyjson_mut_val *obj, const char *key, const char *new_key) { return yyjson_mut_obj_rename_key(doc, obj, key, new_key); }
 bool yyjson_mut_obj_rename_keyn__extern(yyjson_mut_doc *doc, yyjson_mut_val *obj, const char *key, size_t len, const char *new_key, size_t new_len) { return yyjson_mut_obj_rename_keyn(doc, obj, key, len, new_key, new_len); }
-yyjson_val * yyjson_doc_ptr_get__extern(yyjson_doc *doc, const char *ptr) { return yyjson_doc_ptr_get(doc, ptr); }
-yyjson_val * yyjson_doc_ptr_getn__extern(yyjson_doc *doc, const char *ptr, size_t len) { return yyjson_doc_ptr_getn(doc, ptr, len); }
-yyjson_val * yyjson_doc_ptr_getx__extern(yyjson_doc *doc, const char *ptr, size_t len, yyjson_ptr_err *err) { return yyjson_doc_ptr_getx(doc, ptr, len, err); }
-yyjson_val * yyjson_ptr_get__extern(yyjson_val *val, const char *ptr) { return yyjson_ptr_get(val, ptr); }
-yyjson_val * yyjson_ptr_getn__extern(yyjson_val *val, const char *ptr, size_t len) { return yyjson_ptr_getn(val, ptr, len); }
-yyjson_val * yyjson_ptr_getx__extern(yyjson_val *val, const char *ptr, size_t len, yyjson_ptr_err *err) { return yyjson_ptr_getx(val, ptr, len, err); }
-yyjson_mut_val * yyjson_mut_doc_ptr_get__extern(yyjson_mut_doc *doc, const char *ptr) { return yyjson_mut_doc_ptr_get(doc, ptr); }
-yyjson_mut_val * yyjson_mut_doc_ptr_getn__extern(yyjson_mut_doc *doc, const char *ptr, size_t len) { return yyjson_mut_doc_ptr_getn(doc, ptr, len); }
-yyjson_mut_val * yyjson_mut_doc_ptr_getx__extern(yyjson_mut_doc *doc, const char *ptr, size_t len, yyjson_ptr_ctx *ctx, yyjson_ptr_err *err) { return yyjson_mut_doc_ptr_getx(doc, ptr, len, ctx, err); }
-yyjson_mut_val * yyjson_mut_ptr_get__extern(yyjson_mut_val *val, const char *ptr) { return yyjson_mut_ptr_get(val, ptr); }
-yyjson_mut_val * yyjson_mut_ptr_getn__extern(yyjson_mut_val *val, const char *ptr, size_t len) { return yyjson_mut_ptr_getn(val, ptr, len); }
-yyjson_mut_val * yyjson_mut_ptr_getx__extern(yyjson_mut_val *val, const char *ptr, size_t len, yyjson_ptr_ctx *ctx, yyjson_ptr_err *err) { return yyjson_mut_ptr_getx(val, ptr, len, ctx, err); }
-bool yyjson_mut_doc_ptr_add__extern(yyjson_mut_doc *doc, const char *ptr, yyjson_mut_val *new_val) { return yyjson_mut_doc_ptr_add(doc, ptr, new_val); }
-bool yyjson_mut_doc_ptr_addn__extern(yyjson_mut_doc *doc, const char *ptr, size_t len, yyjson_mut_val *new_val) { return yyjson_mut_doc_ptr_addn(doc, ptr, len, new_val); }
-bool yyjson_mut_doc_ptr_addx__extern(yyjson_mut_doc *doc, const char *ptr, size_t len, yyjson_mut_val *new_val, bool create_parent, yyjson_ptr_ctx *ctx, yyjson_ptr_err *err) { return yyjson_mut_doc_ptr_addx(doc, ptr, len, new_val, create_parent, ctx, err); }
-bool yyjson_mut_ptr_add__extern(yyjson_mut_val *val, const char *ptr, yyjson_mut_val *new_val, yyjson_mut_doc *doc) { return yyjson_mut_ptr_add(val, ptr, new_val, doc); }
-bool yyjson_mut_ptr_addn__extern(yyjson_mut_val *val, const char *ptr, size_t len, yyjson_mut_val *new_val, yyjson_mut_doc *doc) { return yyjson_mut_ptr_addn(val, ptr, len, new_val, doc); }
-bool yyjson_mut_ptr_addx__extern(yyjson_mut_val *val, const char *ptr, size_t len, yyjson_mut_val *new_val, yyjson_mut_doc *doc, bool create_parent, yyjson_ptr_ctx *ctx, yyjson_ptr_err *err) { return yyjson_mut_ptr_addx(val, ptr, len, new_val, doc, create_parent, ctx, err); }
-bool yyjson_mut_doc_ptr_set__extern(yyjson_mut_doc *doc, const char *ptr, yyjson_mut_val *new_val) { return yyjson_mut_doc_ptr_set(doc, ptr, new_val); }
-bool yyjson_mut_doc_ptr_setn__extern(yyjson_mut_doc *doc, const char *ptr, size_t len, yyjson_mut_val *new_val) { return yyjson_mut_doc_ptr_setn(doc, ptr, len, new_val); }
-bool yyjson_mut_doc_ptr_setx__extern(yyjson_mut_doc *doc, const char *ptr, size_t len, yyjson_mut_val *new_val, bool create_parent, yyjson_ptr_ctx *ctx, yyjson_ptr_err *err) { return yyjson_mut_doc_ptr_setx(doc, ptr, len, new_val, create_parent, ctx, err); }
-bool yyjson_mut_ptr_set__extern(yyjson_mut_val *val, const char *ptr, yyjson_mut_val *new_val, yyjson_mut_doc *doc) { return yyjson_mut_ptr_set(val, ptr, new_val, doc); }
-bool yyjson_mut_ptr_setn__extern(yyjson_mut_val *val, const char *ptr, size_t len, yyjson_mut_val *new_val, yyjson_mut_doc *doc) { return yyjson_mut_ptr_setn(val, ptr, len, new_val, doc); }
-bool yyjson_mut_ptr_setx__extern(yyjson_mut_val *val, const char *ptr, size_t len, yyjson_mut_val *new_val, yyjson_mut_doc *doc, bool create_parent, yyjson_ptr_ctx *ctx, yyjson_ptr_err *err) { return yyjson_mut_ptr_setx(val, ptr, len, new_val, doc, create_parent, ctx, err); }
-yyjson_mut_val * yyjson_mut_doc_ptr_replace__extern(yyjson_mut_doc *doc, const char *ptr, yyjson_mut_val *new_val) { return yyjson_mut_doc_ptr_replace(doc, ptr, new_val); }
-yyjson_mut_val * yyjson_mut_doc_ptr_replacen__extern(yyjson_mut_doc *doc, const char *ptr, size_t len, yyjson_mut_val *new_val) { return yyjson_mut_doc_ptr_replacen(doc, ptr, len, new_val); }
-yyjson_mut_val * yyjson_mut_doc_ptr_replacex__extern(yyjson_mut_doc *doc, const char *ptr, size_t len, yyjson_mut_val *new_val, yyjson_ptr_ctx *ctx, yyjson_ptr_err *err) { return yyjson_mut_doc_ptr_replacex(doc, ptr, len, new_val, ctx, err); }
-yyjson_mut_val * yyjson_mut_ptr_replace__extern(yyjson_mut_val *val, const char *ptr, yyjson_mut_val *new_val) { return yyjson_mut_ptr_replace(val, ptr, new_val); }
-yyjson_mut_val * yyjson_mut_ptr_replacen__extern(yyjson_mut_val *val, const char *ptr, size_t len, yyjson_mut_val *new_val) { return yyjson_mut_ptr_replacen(val, ptr, len, new_val); }
-yyjson_mut_val * yyjson_mut_ptr_replacex__extern(yyjson_mut_val *val, const char *ptr, size_t len, yyjson_mut_val *new_val, yyjson_ptr_ctx *ctx, yyjson_ptr_err *err) { return yyjson_mut_ptr_replacex(val, ptr, len, new_val, ctx, err); }
-yyjson_mut_val * yyjson_mut_doc_ptr_remove__extern(yyjson_mut_doc *doc, const char *ptr) { return yyjson_mut_doc_ptr_remove(doc, ptr); }
-yyjson_mut_val * yyjson_mut_doc_ptr_removen__extern(yyjson_mut_doc *doc, const char *ptr, size_t len) { return yyjson_mut_doc_ptr_removen(doc, ptr, len); }
-yyjson_mut_val * yyjson_mut_doc_ptr_removex__extern(yyjson_mut_doc *doc, const char *ptr, size_t len, yyjson_ptr_ctx *ctx, yyjson_ptr_err *err) { return yyjson_mut_doc_ptr_removex(doc, ptr, len, ctx, err); }
-yyjson_mut_val * yyjson_mut_ptr_remove__extern(yyjson_mut_val *val, const char *ptr) { return yyjson_mut_ptr_remove(val, ptr); }
-yyjson_mut_val * yyjson_mut_ptr_removen__extern(yyjson_mut_val *val, const char *ptr, size_t len) { return yyjson_mut_ptr_removen(val, ptr, len); }
-yyjson_mut_val * yyjson_mut_ptr_removex__extern(yyjson_mut_val *val, const char *ptr, size_t len, yyjson_ptr_ctx *ctx, yyjson_ptr_err *err) { return yyjson_mut_ptr_removex(val, ptr, len, ctx, err); }
-bool yyjson_ptr_ctx_append__extern(yyjson_ptr_ctx *ctx, yyjson_mut_val *key, yyjson_mut_val *val) { return yyjson_ptr_ctx_append(ctx, key, val); }
-bool yyjson_ptr_ctx_replace__extern(yyjson_ptr_ctx *ctx, yyjson_mut_val *val) { return yyjson_ptr_ctx_replace(ctx, val); }
-bool yyjson_ptr_ctx_remove__extern(yyjson_ptr_ctx *ctx) { return yyjson_ptr_ctx_remove(ctx); }
 bool unsafe_yyjson_is_str_noesc__extern(const char *str, size_t len) { return unsafe_yyjson_is_str_noesc(str, len); }
 double unsafe_yyjson_u64_to_f64__extern(uint64_t num) { return unsafe_yyjson_u64_to_f64(num); }
 yyjson_type unsafe_yyjson_get_type__extern(void *val) { return unsafe_yyjson_get_type(val); }
@@ -344,19 +301,3 @@ void unsafe_yyjson_mut_obj_add__extern(yyjson_mut_val *obj, yyjson_mut_val *key,
 yyjson_mut_val * unsafe_yyjson_mut_obj_remove__extern(yyjson_mut_val *obj, const char *key, size_t key_len) { return unsafe_yyjson_mut_obj_remove(obj, key, key_len); }
 bool unsafe_yyjson_mut_obj_replace__extern(yyjson_mut_val *obj, yyjson_mut_val *key, yyjson_mut_val *val) { return unsafe_yyjson_mut_obj_replace(obj, key, val); }
 void unsafe_yyjson_mut_obj_rotate__extern(yyjson_mut_val *obj, size_t idx) { unsafe_yyjson_mut_obj_rotate(obj, idx); }
-bool yyjson_ptr_get_bool__extern(yyjson_val *root, const char *ptr, bool *value) { return yyjson_ptr_get_bool(root, ptr, value); }
-bool yyjson_ptr_get_uint__extern(yyjson_val *root, const char *ptr, uint64_t *value) { return yyjson_ptr_get_uint(root, ptr, value); }
-bool yyjson_ptr_get_sint__extern(yyjson_val *root, const char *ptr, int64_t *value) { return yyjson_ptr_get_sint(root, ptr, value); }
-bool yyjson_ptr_get_real__extern(yyjson_val *root, const char *ptr, double *value) { return yyjson_ptr_get_real(root, ptr, value); }
-bool yyjson_ptr_get_num__extern(yyjson_val *root, const char *ptr, double *value) { return yyjson_ptr_get_num(root, ptr, value); }
-bool yyjson_ptr_get_str__extern(yyjson_val *root, const char *ptr, const char **value) { return yyjson_ptr_get_str(root, ptr, value); }
-yyjson_val * yyjson_doc_get_pointer__extern(yyjson_doc *doc, const char *ptr) { return yyjson_doc_get_pointer(doc, ptr); }
-yyjson_val * yyjson_doc_get_pointern__extern(yyjson_doc *doc, const char *ptr, size_t len) { return yyjson_doc_get_pointern(doc, ptr, len); }
-yyjson_mut_val * yyjson_mut_doc_get_pointer__extern(yyjson_mut_doc *doc, const char *ptr) { return yyjson_mut_doc_get_pointer(doc, ptr); }
-yyjson_mut_val * yyjson_mut_doc_get_pointern__extern(yyjson_mut_doc *doc, const char *ptr, size_t len) { return yyjson_mut_doc_get_pointern(doc, ptr, len); }
-yyjson_val * yyjson_get_pointer__extern(yyjson_val *val, const char *ptr) { return yyjson_get_pointer(val, ptr); }
-yyjson_val * yyjson_get_pointern__extern(yyjson_val *val, const char *ptr, size_t len) { return yyjson_get_pointern(val, ptr, len); }
-yyjson_mut_val * yyjson_mut_get_pointer__extern(yyjson_mut_val *val, const char *ptr) { return yyjson_mut_get_pointer(val, ptr); }
-yyjson_mut_val * yyjson_mut_get_pointern__extern(yyjson_mut_val *val, const char *ptr, size_t len) { return yyjson_mut_get_pointern(val, ptr, len); }
-yyjson_val * unsafe_yyjson_get_pointer__extern(yyjson_val *val, const char *ptr, size_t len) { return unsafe_yyjson_get_pointer(val, ptr, len); }
-yyjson_mut_val * unsafe_yyjson_mut_get_pointer__extern(yyjson_mut_val *val, const char *ptr, size_t len) { return unsafe_yyjson_mut_get_pointer(val, ptr, len); }
