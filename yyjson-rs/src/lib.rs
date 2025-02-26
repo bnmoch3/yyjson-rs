@@ -1,16 +1,11 @@
-use yyjson_sys::add;
+mod allocator;
+mod doc;
+mod read;
+mod val;
+mod write;
 
-pub fn add2(a: u64, b: u64) -> u64 {
-    add(a, b)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+pub use allocator::*;
+pub use doc::*;
+pub use read::*;
+pub use val::*;
+pub use write::*;
