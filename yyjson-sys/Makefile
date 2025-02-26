@@ -18,6 +18,4 @@ bindgen:
 		--wrap-static-fns-path extern.c \
 		$(YYJSON_H) \
 		-- \
-		-DYYJSON_DISABLE_NON_STANDARD=1 \
-		-DYYJSON_DISABLE_UTILS=1 \
-		-DYYJSON_DISABLE_WRITER=1
+		-DYYJSON_DISABLE_UTILS=1

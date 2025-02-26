@@ -18,11 +18,7 @@ fn main() {
 
     println!("cargo:rerun-if-changed={}", yyjson_src_dir_path.display());
 
-    let yyjson_cflags = vec![
-        "-DYYJSON_DISABLE_UTILS=1",
-        "-DYYJSON_DISABLE_NON_STANDARD=1",
-        "-DYYJSON_DISABLE_WRITER=1",
-    ];
+    let yyjson_cflags = vec!["-DYYJSON_DISABLE_UTILS=1"];
 
     let mut build = cc::Build::new();
     #[allow(clippy::redundant_closure_call)]

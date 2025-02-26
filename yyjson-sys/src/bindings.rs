@@ -2672,6 +2672,162 @@ const _: () = {
         [::std::mem::offset_of!(yyjson_write_err, msg) - 8usize];
 };
 unsafe extern "C" {
+    #[doc = "Write a document to JSON string with options.\n\nThis function is thread-safe when:\nThe `alc` is thread-safe or NULL.\n\n@param doc The JSON document.\nIf this doc is NULL or has no root, the function will fail and return false.\n@param flg The JSON write options.\nMultiple options can be combined with `|` operator. 0 means no options.\n@param alc The memory allocator used by JSON writer.\nPass NULL to use the libc's default allocator.\n@param len A pointer to receive output length in bytes (not including the\nnull-terminator). Pass NULL if you don't need length information.\n@param err A pointer to receive error information.\nPass NULL if you don't need error information.\n@return A new JSON string, or NULL if an error occurs.\nThis string is encoded as UTF-8 with a null-terminator.\nWhen it's no longer needed, it should be freed with free() or alc->free()."]
+    pub fn yyjson_write_opts(
+        doc: *const yyjson_doc,
+        flg: yyjson_write_flag,
+        alc: *const yyjson_alc,
+        len: *mut usize,
+        err: *mut yyjson_write_err,
+    ) -> *mut ::std::os::raw::c_char;
+}
+unsafe extern "C" {
+    #[doc = "Write a document to JSON file with options.\n\nThis function is thread-safe when:\n1. The file is not accessed by other threads.\n2. The `alc` is thread-safe or NULL.\n\n@param path The JSON file's path.\nIf this path is NULL or invalid, the function will fail and return false.\nIf this file is not empty, the content will be discarded.\n@param doc The JSON document.\nIf this doc is NULL or has no root, the function will fail and return false.\n@param flg The JSON write options.\nMultiple options can be combined with `|` operator. 0 means no options.\n@param alc The memory allocator used by JSON writer.\nPass NULL to use the libc's default allocator.\n@param err A pointer to receive error information.\nPass NULL if you don't need error information.\n@return true if successful, false if an error occurs.\n\n@warning On 32-bit operating system, files larger than 2GB may fail to write."]
+    pub fn yyjson_write_file(
+        path: *const ::std::os::raw::c_char,
+        doc: *const yyjson_doc,
+        flg: yyjson_write_flag,
+        alc: *const yyjson_alc,
+        err: *mut yyjson_write_err,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Write a document to file pointer with options.\n\n@param fp The file pointer.\nThe data will be written to the current position of the file.\nIf this fp is NULL or invalid, the function will fail and return false.\n@param doc The JSON document.\nIf this doc is NULL or has no root, the function will fail and return false.\n@param flg The JSON write options.\nMultiple options can be combined with `|` operator. 0 means no options.\n@param alc The memory allocator used by JSON writer.\nPass NULL to use the libc's default allocator.\n@param err A pointer to receive error information.\nPass NULL if you don't need error information.\n@return true if successful, false if an error occurs.\n\n@warning On 32-bit operating system, files larger than 2GB may fail to write."]
+    pub fn yyjson_write_fp(
+        fp: *mut FILE,
+        doc: *const yyjson_doc,
+        flg: yyjson_write_flag,
+        alc: *const yyjson_alc,
+        err: *mut yyjson_write_err,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Write a document to JSON string.\n\nThis function is thread-safe.\n\n@param doc The JSON document.\nIf this doc is NULL or has no root, the function will fail and return false.\n@param flg The JSON write options.\nMultiple options can be combined with `|` operator. 0 means no options.\n@param len A pointer to receive output length in bytes (not including the\nnull-terminator). Pass NULL if you don't need length information.\n@return A new JSON string, or NULL if an error occurs.\nThis string is encoded as UTF-8 with a null-terminator.\nWhen it's no longer needed, it should be freed with free()."]
+    #[link_name = "yyjson_write__extern"]
+    pub fn yyjson_write(
+        doc: *const yyjson_doc,
+        flg: yyjson_write_flag,
+        len: *mut usize,
+    ) -> *mut ::std::os::raw::c_char;
+}
+unsafe extern "C" {
+    #[doc = "Write a document to JSON string with options.\n\nThis function is thread-safe when:\n1. The `doc` is not modified by other threads.\n2. The `alc` is thread-safe or NULL.\n\n@param doc The mutable JSON document.\nIf this doc is NULL or has no root, the function will fail and return false.\n@param flg The JSON write options.\nMultiple options can be combined with `|` operator. 0 means no options.\n@param alc The memory allocator used by JSON writer.\nPass NULL to use the libc's default allocator.\n@param len A pointer to receive output length in bytes (not including the\nnull-terminator). Pass NULL if you don't need length information.\n@param err A pointer to receive error information.\nPass NULL if you don't need error information.\n@return A new JSON string, or NULL if an error occurs.\nThis string is encoded as UTF-8 with a null-terminator.\nWhen it's no longer needed, it should be freed with free() or alc->free()."]
+    pub fn yyjson_mut_write_opts(
+        doc: *const yyjson_mut_doc,
+        flg: yyjson_write_flag,
+        alc: *const yyjson_alc,
+        len: *mut usize,
+        err: *mut yyjson_write_err,
+    ) -> *mut ::std::os::raw::c_char;
+}
+unsafe extern "C" {
+    #[doc = "Write a document to JSON file with options.\n\nThis function is thread-safe when:\n1. The file is not accessed by other threads.\n2. The `doc` is not modified by other threads.\n3. The `alc` is thread-safe or NULL.\n\n@param path The JSON file's path.\nIf this path is NULL or invalid, the function will fail and return false.\nIf this file is not empty, the content will be discarded.\n@param doc The mutable JSON document.\nIf this doc is NULL or has no root, the function will fail and return false.\n@param flg The JSON write options.\nMultiple options can be combined with `|` operator. 0 means no options.\n@param alc The memory allocator used by JSON writer.\nPass NULL to use the libc's default allocator.\n@param err A pointer to receive error information.\nPass NULL if you don't need error information.\n@return true if successful, false if an error occurs.\n\n@warning On 32-bit operating system, files larger than 2GB may fail to write."]
+    pub fn yyjson_mut_write_file(
+        path: *const ::std::os::raw::c_char,
+        doc: *const yyjson_mut_doc,
+        flg: yyjson_write_flag,
+        alc: *const yyjson_alc,
+        err: *mut yyjson_write_err,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Write a document to file pointer with options.\n\n@param fp The file pointer.\nThe data will be written to the current position of the file.\nIf this fp is NULL or invalid, the function will fail and return false.\n@param doc The mutable JSON document.\nIf this doc is NULL or has no root, the function will fail and return false.\n@param flg The JSON write options.\nMultiple options can be combined with `|` operator. 0 means no options.\n@param alc The memory allocator used by JSON writer.\nPass NULL to use the libc's default allocator.\n@param err A pointer to receive error information.\nPass NULL if you don't need error information.\n@return true if successful, false if an error occurs.\n\n@warning On 32-bit operating system, files larger than 2GB may fail to write."]
+    pub fn yyjson_mut_write_fp(
+        fp: *mut FILE,
+        doc: *const yyjson_mut_doc,
+        flg: yyjson_write_flag,
+        alc: *const yyjson_alc,
+        err: *mut yyjson_write_err,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Write a document to JSON string.\n\nThis function is thread-safe when:\nThe `doc` is not modified by other threads.\n\n@param doc The JSON document.\nIf this doc is NULL or has no root, the function will fail and return false.\n@param flg The JSON write options.\nMultiple options can be combined with `|` operator. 0 means no options.\n@param len A pointer to receive output length in bytes (not including the\nnull-terminator). Pass NULL if you don't need length information.\n@return A new JSON string, or NULL if an error occurs.\nThis string is encoded as UTF-8 with a null-terminator.\nWhen it's no longer needed, it should be freed with free()."]
+    #[link_name = "yyjson_mut_write__extern"]
+    pub fn yyjson_mut_write(
+        doc: *const yyjson_mut_doc,
+        flg: yyjson_write_flag,
+        len: *mut usize,
+    ) -> *mut ::std::os::raw::c_char;
+}
+unsafe extern "C" {
+    #[doc = "Write a value to JSON string with options.\n\nThis function is thread-safe when:\nThe `alc` is thread-safe or NULL.\n\n@param val The JSON root value.\nIf this parameter is NULL, the function will fail and return NULL.\n@param flg The JSON write options.\nMultiple options can be combined with `|` operator. 0 means no options.\n@param alc The memory allocator used by JSON writer.\nPass NULL to use the libc's default allocator.\n@param len A pointer to receive output length in bytes (not including the\nnull-terminator). Pass NULL if you don't need length information.\n@param err A pointer to receive error information.\nPass NULL if you don't need error information.\n@return A new JSON string, or NULL if an error occurs.\nThis string is encoded as UTF-8 with a null-terminator.\nWhen it's no longer needed, it should be freed with free() or alc->free()."]
+    pub fn yyjson_val_write_opts(
+        val: *const yyjson_val,
+        flg: yyjson_write_flag,
+        alc: *const yyjson_alc,
+        len: *mut usize,
+        err: *mut yyjson_write_err,
+    ) -> *mut ::std::os::raw::c_char;
+}
+unsafe extern "C" {
+    #[doc = "Write a value to JSON file with options.\n\nThis function is thread-safe when:\n1. The file is not accessed by other threads.\n2. The `alc` is thread-safe or NULL.\n\n@param path The JSON file's path.\nIf this path is NULL or invalid, the function will fail and return false.\nIf this file is not empty, the content will be discarded.\n@param val The JSON root value.\nIf this parameter is NULL, the function will fail and return NULL.\n@param flg The JSON write options.\nMultiple options can be combined with `|` operator. 0 means no options.\n@param alc The memory allocator used by JSON writer.\nPass NULL to use the libc's default allocator.\n@param err A pointer to receive error information.\nPass NULL if you don't need error information.\n@return true if successful, false if an error occurs.\n\n@warning On 32-bit operating system, files larger than 2GB may fail to write."]
+    pub fn yyjson_val_write_file(
+        path: *const ::std::os::raw::c_char,
+        val: *const yyjson_val,
+        flg: yyjson_write_flag,
+        alc: *const yyjson_alc,
+        err: *mut yyjson_write_err,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Write a value to file pointer with options.\n\n@param fp The file pointer.\nThe data will be written to the current position of the file.\nIf this path is NULL or invalid, the function will fail and return false.\n@param val The JSON root value.\nIf this parameter is NULL, the function will fail and return NULL.\n@param flg The JSON write options.\nMultiple options can be combined with `|` operator. 0 means no options.\n@param alc The memory allocator used by JSON writer.\nPass NULL to use the libc's default allocator.\n@param err A pointer to receive error information.\nPass NULL if you don't need error information.\n@return true if successful, false if an error occurs.\n\n@warning On 32-bit operating system, files larger than 2GB may fail to write."]
+    pub fn yyjson_val_write_fp(
+        fp: *mut FILE,
+        val: *const yyjson_val,
+        flg: yyjson_write_flag,
+        alc: *const yyjson_alc,
+        err: *mut yyjson_write_err,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Write a value to JSON string.\n\nThis function is thread-safe.\n\n@param val The JSON root value.\nIf this parameter is NULL, the function will fail and return NULL.\n@param flg The JSON write options.\nMultiple options can be combined with `|` operator. 0 means no options.\n@param len A pointer to receive output length in bytes (not including the\nnull-terminator). Pass NULL if you don't need length information.\n@return A new JSON string, or NULL if an error occurs.\nThis string is encoded as UTF-8 with a null-terminator.\nWhen it's no longer needed, it should be freed with free()."]
+    #[link_name = "yyjson_val_write__extern"]
+    pub fn yyjson_val_write(
+        val: *const yyjson_val,
+        flg: yyjson_write_flag,
+        len: *mut usize,
+    ) -> *mut ::std::os::raw::c_char;
+}
+unsafe extern "C" {
+    #[doc = "Write a value to JSON string with options.\n\nThis function is thread-safe when:\n1. The `val` is not modified by other threads.\n2. The `alc` is thread-safe or NULL.\n\n@param val The mutable JSON root value.\nIf this parameter is NULL, the function will fail and return NULL.\n@param flg The JSON write options.\nMultiple options can be combined with `|` operator. 0 means no options.\n@param alc The memory allocator used by JSON writer.\nPass NULL to use the libc's default allocator.\n@param len A pointer to receive output length in bytes (not including the\nnull-terminator). Pass NULL if you don't need length information.\n@param err A pointer to receive error information.\nPass NULL if you don't need error information.\n@return  A new JSON string, or NULL if an error occurs.\nThis string is encoded as UTF-8 with a null-terminator.\nWhen it's no longer needed, it should be freed with free() or alc->free()."]
+    pub fn yyjson_mut_val_write_opts(
+        val: *const yyjson_mut_val,
+        flg: yyjson_write_flag,
+        alc: *const yyjson_alc,
+        len: *mut usize,
+        err: *mut yyjson_write_err,
+    ) -> *mut ::std::os::raw::c_char;
+}
+unsafe extern "C" {
+    #[doc = "Write a value to JSON file with options.\n\nThis function is thread-safe when:\n1. The file is not accessed by other threads.\n2. The `val` is not modified by other threads.\n3. The `alc` is thread-safe or NULL.\n\n@param path The JSON file's path.\nIf this path is NULL or invalid, the function will fail and return false.\nIf this file is not empty, the content will be discarded.\n@param val The mutable JSON root value.\nIf this parameter is NULL, the function will fail and return NULL.\n@param flg The JSON write options.\nMultiple options can be combined with `|` operator. 0 means no options.\n@param alc The memory allocator used by JSON writer.\nPass NULL to use the libc's default allocator.\n@param err A pointer to receive error information.\nPass NULL if you don't need error information.\n@return true if successful, false if an error occurs.\n\n@warning On 32-bit operating system, files larger than 2GB may fail to write."]
+    pub fn yyjson_mut_val_write_file(
+        path: *const ::std::os::raw::c_char,
+        val: *const yyjson_mut_val,
+        flg: yyjson_write_flag,
+        alc: *const yyjson_alc,
+        err: *mut yyjson_write_err,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Write a value to JSON file with options.\n\n@param fp The file pointer.\nThe data will be written to the current position of the file.\nIf this path is NULL or invalid, the function will fail and return false.\n@param val The mutable JSON root value.\nIf this parameter is NULL, the function will fail and return NULL.\n@param flg The JSON write options.\nMultiple options can be combined with `|` operator. 0 means no options.\n@param alc The memory allocator used by JSON writer.\nPass NULL to use the libc's default allocator.\n@param err A pointer to receive error information.\nPass NULL if you don't need error information.\n@return true if successful, false if an error occurs.\n\n@warning On 32-bit operating system, files larger than 2GB may fail to write."]
+    pub fn yyjson_mut_val_write_fp(
+        fp: *mut FILE,
+        val: *const yyjson_mut_val,
+        flg: yyjson_write_flag,
+        alc: *const yyjson_alc,
+        err: *mut yyjson_write_err,
+    ) -> bool;
+}
+unsafe extern "C" {
+    #[doc = "Write a value to JSON string.\n\nThis function is thread-safe when:\nThe `val` is not modified by other threads.\n\n@param val The JSON root value.\nIf this parameter is NULL, the function will fail and return NULL.\n@param flg The JSON write options.\nMultiple options can be combined with `|` operator. 0 means no options.\n@param len A pointer to receive output length in bytes (not including the\nnull-terminator). Pass NULL if you don't need length information.\n@return A new JSON string, or NULL if an error occurs.\nThis string is encoded as UTF-8 with a null-terminator.\nWhen it's no longer needed, it should be freed with free()."]
+    #[link_name = "yyjson_mut_val_write__extern"]
+    pub fn yyjson_mut_val_write(
+        val: *const yyjson_mut_val,
+        flg: yyjson_write_flag,
+        len: *mut usize,
+    ) -> *mut ::std::os::raw::c_char;
+}
+unsafe extern "C" {
     #[doc = " Returns the root value of this JSON document.\nReturns NULL if `doc` is NULL."]
     #[link_name = "yyjson_doc_get_root__extern"]
     pub fn yyjson_doc_get_root(doc: *mut yyjson_doc) -> *mut yyjson_val;
