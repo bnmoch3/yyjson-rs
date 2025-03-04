@@ -5,27 +5,36 @@ use std::ptr;
 use yyjson_sys as ffi;
 
 #[repr(transparent)]
-pub struct Allocator<'parent> {
-    alc: *mut ffi::yyjson_alc,
+pub struct YyjsonAllocator<'a> {
+    pub(crate) p: *mut ffi::yyjson_alc,
     // just in case the Allocator is an embedded field within a parent/holder it
     // should not outlive the parent
-    _lifetime: std::marker::PhantomData<&'parent ()>,
+    pub(crate) _lifetime: std::marker::PhantomData<&'a ()>,
 }
 
-impl Allocator<'_> {
-    /// # Safety
-    /// caller should make sure that alc is valid. it is okay for alc
-    /// to be null - in such a case yyjson will default to the system allocator
-    #[inline(always)]
-    pub unsafe fn as_mut_ptr(&self) -> *mut ffi::yyjson_alc {
-        self.alc
+pub trait YyjsonAllocProvider {
+    /// Creates and returns a `YyjsonAllocator`.
+    ///
+    /// # Lifetimes
+    /// - `'a` ensures that the returned `YyjsonAllocator` cannot outlive the `self` reference,
+    ///   which prevents use-after-free issues if `self` owns or manages the underlying memory.
+    fn get_allocator<'a>(&'a self) -> YyjsonAllocator<'a>;
+}
+
+// =============================================================================
+//                  DEFAULT ALLOCATOR
+// =============================================================================
+
+pub struct BasicAllocProvider {}
+impl Default for BasicAllocProvider {
+    fn default() -> Self {
+        return BasicAllocProvider {};
     }
 }
-
-impl Default for Allocator<'static> {
-    fn default() -> Self {
-        Self {
-            alc: ptr::null_mut(),
+impl YyjsonAllocProvider for BasicAllocProvider {
+    fn get_allocator<'a>(&'a self) -> YyjsonAllocator<'a> {
+        YyjsonAllocator {
+            p: ptr::null_mut(),
             _lifetime: std::marker::PhantomData,
         }
     }
@@ -35,13 +44,14 @@ impl Default for Allocator<'static> {
 //                  SINGLE BUF ALLOCATOR
 // =============================================================================
 
-pub struct SingleBufAllocator {
+// Uses a fixed length pre-allocated memory
+pub struct PoolAllocProvider {
     alc: *mut ffi::yyjson_alc,
     buf: *mut u8,
     layout: Layout,
 }
 
-impl Drop for SingleBufAllocator {
+impl Drop for PoolAllocProvider {
     fn drop(&mut self) {
         // SAFETY: SingelBufAllocator can only be created if buf is non-null and
         // points to valid memory and layout is valid
@@ -52,16 +62,18 @@ impl Drop for SingleBufAllocator {
     }
 }
 
-impl<'a> SingleBufAllocator {
+impl YyjsonAllocProvider for PoolAllocProvider {
     #[inline(always)]
-    pub fn allocator(&'a self) -> Allocator<'a> {
-        Allocator {
-            alc: self.alc,
-            _lifetime: std::marker::PhantomData::<&'a ()>,
+    fn get_allocator<'a>(&'a self) -> YyjsonAllocator<'a> {
+        YyjsonAllocator {
+            p: self.alc,
+            _lifetime: std::marker::PhantomData,
         }
     }
+}
 
-    pub fn create(
+impl PoolAllocProvider {
+    pub fn new(
         expected_json_size: usize,
         options: Option<&crate::ReadOptions>,
     ) -> Result<Self, &'static str> {
@@ -96,7 +108,7 @@ impl<'a> SingleBufAllocator {
 
         // this has to be created here so that if `yyjson_alc_pool_init` fails
         // then both alc and buf will be dropped
-        let sb = SingleBufAllocator { alc, buf, layout };
+        let sb = PoolAllocProvider { alc, buf, layout };
 
         // init pool
         // SAFETY: alc is non-null since it's retrieved from a Boxed value and
@@ -116,28 +128,28 @@ impl<'a> SingleBufAllocator {
 // =============================================================================
 
 #[repr(transparent)]
-pub struct DynamicAllocator {
+pub struct DynamicAllocProvider {
     alc: *mut ffi::yyjson_alc,
 }
 
-impl Default for DynamicAllocator {
+impl Default for DynamicAllocProvider {
     fn default() -> Self {
         let alc: *mut ffi::yyjson_alc = unsafe { ffi::yyjson_alc_dyn_new() };
         Self { alc }
     }
 }
 
-impl<'a> DynamicAllocator {
+impl YyjsonAllocProvider for DynamicAllocProvider {
     #[inline(always)]
-    pub fn allocator(&'a self) -> Allocator<'a> {
-        Allocator {
-            alc: self.alc,
-            _lifetime: std::marker::PhantomData::<&'a ()>,
+    fn get_allocator<'a>(&'a self) -> YyjsonAllocator<'a> {
+        YyjsonAllocator {
+            p: self.alc,
+            _lifetime: std::marker::PhantomData,
         }
     }
 }
 
-impl Drop for DynamicAllocator {
+impl Drop for DynamicAllocProvider {
     fn drop(&mut self) {
         // SAFETY: by construction, either DynamicAllocator.alc is null in which
         // case `yyjson_alc_dyn_free` will not error out or is non-null in which

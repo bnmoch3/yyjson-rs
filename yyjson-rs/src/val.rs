@@ -1,5 +1,6 @@
-use crate::allocator::Allocator;
+use crate::allocator::YyjsonAllocProvider;
 use crate::write::{WriteError, WriteOutput, Writer};
+use crate::BasicAllocProvider;
 use yyjson_sys as ffi;
 
 pub struct List<'doc> {
@@ -316,15 +317,17 @@ impl std::fmt::Display for Val<'_> {
             ..Default::default()
         };
         // use yyjson's default allocator which is libc::malloc/free
-        let alc = Allocator::default();
+        let allocator = BasicAllocProvider::default();
+        let alc = allocator.get_allocator();
         let mut writer = Writer::new(alc, Some(&write_opts));
-        match self.write(&mut writer) {
+        let res = match self.write(&mut writer) {
             Ok(output) => output.fmt(f),
             // NOTE, need to provide out-of-band
             // means for checking exact error
             // that occured
             Err(_) => Err(std::fmt::Error),
-        }
+        };
+        res
     }
 }
 
@@ -492,7 +495,7 @@ impl<'doc> Val<'doc> {
         }
     }
 
-    pub fn write<'a>(&self, writer: &mut Writer<'a>) -> Result<WriteOutput<'a>, WriteError> {
+    pub fn write<'a>(&self, writer: &'a mut Writer<'a>) -> Result<WriteOutput<'a>, WriteError> {
         writer.write(
             |write_flag: u32,
              alc: *mut ffi::yyjson_alc,
@@ -510,8 +513,7 @@ impl<'doc> Val<'doc> {
 
 #[cfg(test)]
 mod tests {
-    use crate::doc::Doc;
-    use crate::read::ReadOptions;
+    use crate::DocContext;
 
     fn eq_bool(val: &Val<'_>, v: bool) -> bool {
         if let Some(got) = val.bool() {
@@ -692,9 +694,9 @@ mod tests {
             ),
         ];
 
-        let read_opts = ReadOptions::default();
+        let dc = DocContext::default();
         for tc in test_cases {
-            let doc = Doc::read_from(tc.input, Some(&read_opts))?;
+            let doc = dc.parse(tc.input)?;
             let val = doc.root();
             assert!(
                 unsafe { (tc.is_type)(val.p) },
@@ -728,7 +730,8 @@ mod tests {
     fn list_access() -> anyhow::Result<()> {
         let data = r#"[10,20,30]"#;
         let content: &[u8] = data.as_bytes();
-        let doc = Doc::read_from(content, None)?;
+        let dc = DocContext::default();
+        let doc = dc.parse(content)?;
         let root = doc.root();
         let list = root.list().unwrap();
         assert!(list.len() == 3);
@@ -746,7 +749,8 @@ mod tests {
     fn empty_list_access() -> anyhow::Result<()> {
         let data = r#"[  ]"#;
         let content: &[u8] = data.as_bytes();
-        let doc = Doc::read_from(content, None)?;
+        let dc = DocContext::default();
+        let doc = dc.parse(content)?;
         let root = doc.root();
         let list = root.list().unwrap();
         assert!(list.len() == 0);
@@ -760,7 +764,8 @@ mod tests {
         let data = r#"{"a": 10, "b": 20, "c": 30, "d": 40, "e": 50}"#;
         let content: &[u8] = data.as_bytes();
 
-        let doc = Doc::read_from(content, None)?;
+        let dc = DocContext::default();
+        let doc = dc.parse(content)?;
         let root = doc.root();
         let obj = root.obj().unwrap();
         assert_eq!(obj.len(), 5);

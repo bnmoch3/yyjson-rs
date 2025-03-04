@@ -3,7 +3,7 @@ use std::{ffi::CStr, fmt::Display, mem::MaybeUninit};
 use num_derive::FromPrimitive;
 use std::ffi::c_void;
 
-use crate::Allocator;
+use crate::YyjsonAllocator;
 use yyjson_sys as ffi;
 
 #[derive(Debug)]
@@ -135,32 +135,37 @@ impl WriteOptions {
     }
 }
 
-pub struct Writer<'allocator> {
-    alloc: Allocator<'allocator>,
+pub struct Writer<'a> {
     write_flag: u32,
+    alc: *mut ffi::yyjson_alc,
+    _alloc_lifetime: std::marker::PhantomData<&'a ()>,
 }
 
-impl<'allocator> Writer<'allocator> {
-    pub fn new(alloc: Allocator<'allocator>, options: Option<&WriteOptions>) -> Self {
+impl<'a> Writer<'a> {
+    pub fn new(allocator: YyjsonAllocator<'a>, options: Option<&WriteOptions>) -> Writer<'a> {
         let write_flag = if let Some(v) = options {
             v.to_write_flag()
         } else {
             ffi::YYJSON_WRITE_NOFLAG
         };
-        Self { alloc, write_flag }
+        let alc = allocator.p;
+        Self {
+            write_flag,
+            alc,
+            _alloc_lifetime: std::marker::PhantomData,
+        }
     }
 
     #[inline(always)]
     pub fn write(
-        &self,
+        &'a self,
         do_write: impl Fn(u32, *mut ffi::yyjson_alc, &mut usize, *mut ffi::yyjson_write_err) -> *mut u8,
-    ) -> Result<WriteOutput<'allocator>, WriteError> {
+    ) -> Result<WriteOutput<'a>, WriteError> {
         let mut len: usize = 0; // receives output length, will not include NUL
         let mut write_err = MaybeUninit::<ffi::yyjson_write_err>::uninit();
         // SAFETY: it is okay if alc is null. If it is non-null, by construction
         // it points to a valid ffi::yyjson_alc struct
-        let alc = unsafe { self.alloc.as_mut_ptr() };
-        let ptr = do_write(self.write_flag, alc, &mut len, write_err.as_mut_ptr());
+        let ptr = do_write(self.write_flag, self.alc, &mut len, write_err.as_mut_ptr());
         if ptr.is_null() {
             // This means either something is wrong with the document OR we
             // passed a null document
@@ -172,7 +177,7 @@ impl<'allocator> Writer<'allocator> {
             Ok(WriteOutput {
                 ptr,
                 len,
-                alc,
+                alc: self.alc,
                 _lifetime: std::marker::PhantomData,
             })
         }
@@ -180,11 +185,11 @@ impl<'allocator> Writer<'allocator> {
 }
 
 #[derive(Debug)]
-pub struct WriteOutput<'allocator> {
+pub struct WriteOutput<'a> {
     ptr: *mut u8,
     len: usize,
     alc: *mut ffi::yyjson_alc,
-    _lifetime: std::marker::PhantomData<&'allocator ()>,
+    _lifetime: std::marker::PhantomData<&'a ()>,
 }
 
 impl WriteOutput<'_> {
