@@ -2,6 +2,10 @@
 name = "yyjson-sys"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+description = "yyjson-sys is a low-level Rust FFI binding for yyjson, a high-performance JSON parsing library. It provides direct access to yyjson's C API. This crate is intended for building higher-level abstractions or integrating yyjson with Rust projects that require minimal overhead."
+repository = "https://github.com/bnmoch3/yyjson-rs"
+
 
 [dependencies]
 

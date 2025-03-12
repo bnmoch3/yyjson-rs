@@ -2,6 +2,11 @@
 name = "yyjson-rs"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+description = "Rust bindings for yyjson"
+repository = "https://github.com/bnmoch3/yyjson-rs"
+readme = "README.md"
+categories = ["Encoding", "Data structures", "Parsing tools"]
 
 [dependencies]
 libc = "0.2.170"
