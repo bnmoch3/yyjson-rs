@@ -12,7 +12,7 @@ categories = ["Encoding", "Data structures", "Parsing tools"]
 libc = "0.2.170"
 num-derive = "0.4.2"
 num-traits = "0.2.19"
-yyjson-sys = { path = "../yyjson-sys" }
+yyjson-sys = { path = "../yyjson-sys", version = "0.1.0" }
 
 [dev-dependencies]
 anyhow = "1.0.96"
