@@ -7,14 +7,14 @@ use crate::{BasicAllocProvider, YyjsonAllocProvider, YyjsonAllocator};
 
 use yyjson_sys as ffi;
 
-pub struct DocContext {
-    ap: Box<dyn YyjsonAllocProvider>,
-    options: ReadOptions,
+pub struct DocContext<T: YyjsonAllocProvider> {
+    ap: T,
+    pub options: ReadOptions,
 }
 
-impl Default for DocContext {
+impl Default for DocContext<BasicAllocProvider> {
     fn default() -> Self {
-        let ap = Box::new(BasicAllocProvider::default());
+        let ap = BasicAllocProvider::default();
         return Self {
             ap,
             options: ReadOptions::default(),
@@ -22,8 +22,8 @@ impl Default for DocContext {
     }
 }
 
-impl DocContext {
-    pub fn new(ap: Box<dyn YyjsonAllocProvider>, options: ReadOptions) -> Self {
+impl<T: YyjsonAllocProvider> DocContext<T> {
+    pub fn new(ap: T, options: ReadOptions) -> Self {
         Self { ap, options }
     }
 
