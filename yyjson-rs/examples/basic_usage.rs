@@ -1,15 +1,45 @@
-use yyjson_rs::*;
+use yyjson_rs::DocContext;
 
 fn main() -> anyhow::Result<()> {
-    let pa = PoolAllocProvider::new(10, None).unwrap();
-    let dc = DocContext::new(Box::new(pa), ReadOptions::default());
-    let b1 = b"{\"foo\": {\"bar\": null}}";
-    let b2 = b"{\"foo\": 30, \"bar\": 42}";
-    let b3 = b"[1,2,3,4,5,6,7,8,9]";
-    let bufs: &[&[u8]] = &[b1, b2, b3];
-    for buf in bufs {
-        let d = dc.parse(buf)?;
-        println!("doc: {}", d);
+    let json = r#"
+    {
+        "name": "Alice",
+        "age": 30,
+        "scores": [95.5, 89.2, 92.8],
+        "metadata": {
+            "active": true,
+            "tags": ["rust", "c", "json"]
+        }
+    }"#;
+
+    let ctx = DocContext::default();
+    let doc = ctx.parse(json.as_bytes())?;
+    let root = doc.root();
+
+    // Access primitive values
+    let name: Option<&str> = root.at_key("name").and_then(|v| v.str());
+    let age: Option<u64> = root.at_key("age").and_then(|v| v.u64());
+
+    // Navigate nested structures
+    let scores = root.at_key("scores").and_then(|v| v.list()).unwrap();
+    let first_score = scores.get(0).and_then(|v| v.f64()).unwrap();
+
+    let active: Option<bool> = root
+        .at_key("metadata")
+        .and_then(|m| m.at_key("active"))
+        .unwrap()
+        .bool();
+
+    // Array iteration
+    let scores = root.at_key("scores").and_then(|v| v.list()).unwrap();
+    for score in scores.iter() {
+        println!("Score: {}", score.f64().unwrap());
+    }
+
+    // Object iteration
+    let metadata = root.at_key("metadata").and_then(|v| v.obj()).unwrap();
+    for (key, value) in metadata.iter() {
+        println!("{}: {}", key, value);
     }
     Ok(())
 }
