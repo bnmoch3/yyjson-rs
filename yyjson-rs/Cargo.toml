@@ -6,7 +6,7 @@ license = "MIT"
 description = "Rust bindings for yyjson"
 repository = "https://github.com/bnmoch3/yyjson-rs"
 readme = "README.md"
-categories = ["Encoding", "Data structures", "Parsing tools"]
+categories = ["parsing", "parser-implementations", "encoding"]
 
 [dependencies]
 libc = "0.2.170"
