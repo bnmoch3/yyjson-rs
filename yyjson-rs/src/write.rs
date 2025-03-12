@@ -194,20 +194,26 @@ pub struct WriteOutput<'a> {
 
 impl WriteOutput<'_> {
     #[inline(always)]
-    fn as_str(&self) -> &str {
-        // SAFETY: at the point DocWriteOutput is constructed, the ptr value is
-        // assigned only if it is non-null and the len value is set by yyjson if
-        // the write is successful
-        let buf: &[u8] = unsafe { std::slice::from_raw_parts(self.ptr, self.len) };
+    pub fn as_str(&self) -> &str {
+        let buf = self.as_bytes();
 
         // SAFETY: when parsing the input, yyjson checks if it is valid utf-8 (
         // unless compiled with the flag disabling utf-8 checks in which case
         // we have to do it prior to passing the input to yyjson). Therefore
-        // when writing out, yyjson ouptuts valid utf-8 from the internal doc
+        // when writing out, yyjson outputs valid utf-8 from the internal doc
         // structure. Additionally, DocWriteOutput is only constructed if the
         // write was successful.
         let s: &str = unsafe { std::str::from_utf8_unchecked(buf) };
         s
+    }
+
+    #[inline(always)]
+    pub fn as_bytes(&self) -> &[u8] {
+        // SAFETY: at the point DocWriteOutput is constructed, the ptr value is
+        // assigned only if it is non-null and the len value is set by yyjson if
+        // the write is successful
+        let buf: &[u8] = unsafe { std::slice::from_raw_parts(self.ptr, self.len) };
+        return buf;
     }
 }
 
